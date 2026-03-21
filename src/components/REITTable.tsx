@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, FileText, Info, WifiOff } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, FileText, Info, WifiOff, Radio } from 'lucide-react';
 import { REITData, ScoreBreakdown } from '@/lib/reit-types';
 import { getHeatmapClass } from '@/lib/reit-scoring';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { REITErrorBoundary } from '@/components/REITErrorBoundary';
-import type { DiscoveredUrl } from '@/lib/sync-engine';
+import type { DiscoveredUrl, LivePrice } from '@/lib/sync-engine';
 
 type ScoredREIT = REITData & ScoreBreakdown;
 type SortKey = keyof ScoredREIT;
@@ -15,8 +15,7 @@ interface REITTableProps {
   gsecYield: number;
   sourceStatus?: Record<string, 'ok' | 'error'>;
   discoveredUrls?: Record<string, DiscoveredUrl>;
-  priceStatus?: Record<string, { offline: boolean; cachedAt: string | null }>;
-  navFallback?: Record<string, boolean>;
+  livePrices?: Record<string, LivePrice>;
 }
 
 const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatmap?: string }[] = [
@@ -57,13 +56,17 @@ function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: nu
           <div className="flex justify-between">
             <span className="text-muted-foreground">DivScore</span>
             <span className="text-terminal-green">
-              ({reit.divYield}% / {gsecYield}%) × 100 = <span className="font-semibold">{reit.divScore}</span>
+              ({reit.divYield.toFixed(2)}% / {gsecYield}%) × 100 = <span className="font-semibold">{reit.divScore}</span>
             </span>
+          </div>
+          <div className="flex justify-between text-[9px] text-muted-foreground">
+            <span>Yield</span>
+            <span>₹{reit.ttmDistribution} TTM / ₹{reit.cmp.toFixed(2)} CMP × 100</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">ValueScore</span>
             <span className={reit.valueScore >= 0 ? 'text-terminal-green' : 'text-terminal-red'}>
-              (({reit.nav} - {reit.cmp}) / {reit.nav}) × 100 = <span className="font-semibold">{reit.valueScore}%</span>
+              (({reit.nav} - {reit.cmp.toFixed(0)}) / {reit.nav}) × 100 = <span className="font-semibold">{reit.valueScore}%</span>
             </span>
           </div>
           <div className="flex justify-between">
@@ -93,19 +96,17 @@ function REITRow({
   gsecYield,
   sourceStatus,
   discoveredUrls,
-  priceStatus,
-  navFallback,
+  livePrices,
 }: {
   reit: ScoredREIT;
   gsecYield: number;
   sourceStatus?: Record<string, 'ok' | 'error'>;
   discoveredUrls?: Record<string, DiscoveredUrl>;
-  priceStatus?: Record<string, { offline: boolean; cachedAt: string | null }>;
-  navFallback?: Record<string, boolean>;
+  livePrices?: Record<string, LivePrice>;
 }) {
-  const priceInfo = priceStatus?.[reit.id];
-  const isOfflinePrice = priceInfo?.offline ?? false;
-  const isNavFallback = navFallback?.[reit.id] ?? false;
+  const priceInfo = livePrices?.[reit.id];
+  const isLivePrice = priceInfo?.isLive ?? reit.isLiveCMP;
+  const isOfflinePrice = priceInfo ? !priceInfo.isLive : !reit.isLiveCMP;
   const isMissingData = !reit.cmp || !reit.divYield;
 
   return (
@@ -150,13 +151,27 @@ function REITRow({
                 <span className={isOfflinePrice ? 'text-terminal-amber' : 'text-foreground'}>
                   ₹{reit.cmp.toFixed(2)}
                 </span>
-                {isOfflinePrice && (
+                {isLivePrice ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex items-center gap-0.5">
+                        <Radio className="h-2.5 w-2.5 text-terminal-green animate-pulse" />
+                        <span className="text-[7px] px-1 py-0 rounded bg-terminal-green/15 text-terminal-green font-mono font-semibold">
+                          LIVE
+                        </span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10px] font-mono">
+                      <p>Live market price · {priceInfo?.fetchedAt ? new Date(priceInfo.fetchedAt).toLocaleTimeString('en-IN') : 'Just now'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <WifiOff className="h-3 w-3 text-terminal-amber shrink-0" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-[10px] font-mono max-w-[220px]">
-                      <p>API unavailable. Showing price from {priceInfo?.cachedAt || 'last sync'}.</p>
+                      <p>API unavailable. Showing price from {priceInfo?.fetchedAt ? new Date(priceInfo.fetchedAt).toLocaleTimeString('en-IN') : 'Mar 21 close'}.</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -170,22 +185,35 @@ function REITRow({
             <td key={col.key} className="px-3 py-2.5">
               <div className="flex items-center gap-1">
                 <span className="text-foreground">₹{reit.nav}</span>
-                {isNavFallback ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-[8px] px-1 py-0.5 rounded bg-muted text-muted-foreground font-mono">
-                        BASELINE
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-[10px] font-mono">
-                      <p>Using baseline NAV. PDF extraction unavailable.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-green/15 text-terminal-green font-mono">
-                    VERIFIED
-                  </span>
-                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-green/15 text-terminal-green font-mono">
+                      VERIFIED
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px] font-mono">
+                    <p>Source: Q3 FY26 Official Filings</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </td>
+          );
+        }
+
+        if (col.key === 'divYield') {
+          return (
+            <td key={col.key} className={`px-3 py-2.5 ${heatClass}`}>
+              <div className="flex items-center gap-1">
+                <span className="text-foreground">{reit.divYield.toFixed(2)}%</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-2.5 w-2.5 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px] font-mono max-w-[200px]">
+                    <p>TTM DPU: ₹{reit.ttmDistribution} / CMP: ₹{reit.cmp.toFixed(2)}</p>
+                    <p className="text-muted-foreground">Source: Q3 FY26 distributions</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </td>
           );
@@ -278,14 +306,13 @@ function ErrorRow({ colCount }: { colCount: number }) {
   );
 }
 
-export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls, priceStatus, navFallback }: REITTableProps) {
+export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
   const sorted = useMemo(() => {
     const copy = [...data];
     copy.sort((a, b) => {
-      // REITs with missing critical data go to bottom
       const aMissing = !a.cmp || !a.divYield;
       const bMissing = !b.cmp || !b.divYield;
       if (aMissing && !bMissing) return 1;
@@ -341,8 +368,7 @@ export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls, price
                     gsecYield={gsecYield}
                     sourceStatus={sourceStatus}
                     discoveredUrls={discoveredUrls}
-                    priceStatus={priceStatus}
-                    navFallback={navFallback}
+                    livePrices={livePrices}
                   />
                 </REITErrorBoundary>
               ))}

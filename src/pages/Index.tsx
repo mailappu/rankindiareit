@@ -4,7 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
-import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, type SyncError, type DiscoveredUrl } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import {
   LIVE_REIT_DATA,
@@ -21,13 +21,21 @@ export default function Index() {
   const [weights, setWeights] = useState<StrategyWeights>(STRATEGY_PRESETS.income);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [reitData] = useState(LIVE_REIT_DATA);
+  const [reitData, setReitData] = useState(() => {
+    // On mount, apply any cached CMP prices
+    const cachedPrices = getStoredCMPCache();
+    if (Object.keys(cachedPrices).length > 0) {
+      return applyLivePrices(LIVE_REIT_DATA, cachedPrices);
+    }
+    return LIVE_REIT_DATA;
+  });
   const [provenanceBadge, setProvenanceBadge] = useState<string | null>(null);
   const [gsecStatus, setGsecStatus] = useState<GSecStatus>('fallback');
   const [syncFailed, setSyncFailed] = useState(false);
   const [syncErrors, setSyncErrors] = useState<SyncError[]>([]);
   const [sourceStatus, setSourceStatus] = useState<Record<string, 'ok' | 'error'>>({});
   const [discoveredUrls, setDiscoveredUrls] = useState<Record<string, DiscoveredUrl>>(getStoredDiscoveredUrls);
+  const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>(getStoredCMPCache);
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
@@ -65,7 +73,7 @@ export default function Index() {
     setSyncFailed(false);
 
     try {
-      // Fetch G-Sec with 3-tier logic (cache-aware)
+      // Fetch G-Sec with 3-tier logic
       const gsecResult = await getGSecYield();
       setGsecStatus(gsecResult.status);
 
@@ -86,11 +94,30 @@ export default function Index() {
         setGsecYield(gsecResult.yield);
       }
 
-      // Metadata check for PDF sources
+      // Smart sync: PDF discovery + CMP fetch
       const result = await performSmartSync();
 
       setSourceStatus(result.sourceStatus);
       setDiscoveredUrls(result.discoveredUrls);
+      setLivePrices(result.livePrices);
+
+      // Apply live prices and recalculate yield
+      const updatedReits = applyLivePrices(LIVE_REIT_DATA, result.livePrices);
+      setReitData(updatedReits);
+
+      // Count live vs offline prices
+      const liveCount = Object.values(result.livePrices).filter(p => p.isLive).length;
+      const totalCount = Object.values(result.livePrices).length;
+
+      if (liveCount > 0) {
+        toast.success(`Live prices updated for ${liveCount}/${totalCount} REITs`, {
+          description: 'Dividend Yield and rankings recalculated with live CMP.',
+        });
+      } else if (totalCount > 0) {
+        toast.warning('Live prices unavailable. Using last known prices.', {
+          description: 'Rankings use cached CMP values. Yield calculations still valid.',
+        });
+      }
 
       if (result.failed) {
         setSyncFailed(true);
@@ -99,7 +126,6 @@ export default function Index() {
           description: 'Could not reach sync proxy. Using cached values.',
         });
       } else {
-        // Partial errors (some sources failed)
         if (result.errors.length > 0) {
           setSyncErrors(result.errors);
           result.errors.forEach(err => {
@@ -121,7 +147,6 @@ export default function Index() {
           });
         }
 
-        // Notify about newly discovered presentation URLs
         if (result.newDiscoveries.length > 0) {
           const names = result.newDiscoveries.map(id => result.discoveredUrls[id]?.label || id);
           toast.info('New quarterly report discovered and parsed.', {
@@ -174,7 +199,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} />
+        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
 
         <TerminologyCard />
 
