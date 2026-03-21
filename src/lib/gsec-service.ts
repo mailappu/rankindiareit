@@ -53,8 +53,8 @@ export async function getGSecYield(): Promise<{
 }> {
   const cache = getCache();
 
-  // Tier 1: Fresh cache — skip network entirely
-  if (cache && isCacheFresh(cache) && cache.source === 'live') {
+  // Tier 1: Fresh cache — skip network entirely, but only if value is within valid range
+  if (cache && isCacheFresh(cache) && cache.source === 'live' && cache.yield >= VALID_YIELD_MIN && cache.yield <= VALID_YIELD_MAX) {
     return {
       yield: cache.yield,
       status: 'live',
@@ -87,15 +87,14 @@ export async function getGSecYield(): Promise<{
     // Fall through to tier 3
   }
 
-  // Tier 3: Fallback
-  const fallbackYield = cache?.yield ?? FALLBACK_YIELD;
-  if (!cache || cache.source !== 'live') {
-    setCache({ yield: fallbackYield, fetchedAt: Date.now(), source: 'fallback' });
-  }
+  // Tier 3: Fallback — always use hardcoded value, never a stale invalid cache
+  // Clear any bad cached data
+  setCache({ yield: FALLBACK_YIELD, fetchedAt: Date.now(), source: 'fallback' });
+
 
   return {
-    yield: fallbackYield,
-    status: cache ? getCacheAge(cache) : 'fallback',
+    yield: FALLBACK_YIELD,
+    status: 'fallback',
     changed: false,
     previousYield: null,
   };
