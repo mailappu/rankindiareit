@@ -82,7 +82,7 @@ function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: nu
   );
 }
 
-export function REITTable({ data, gsecYield }: REITTableProps) {
+export function REITTable({ data, gsecYield, sourceStatus }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
