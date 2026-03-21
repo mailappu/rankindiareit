@@ -42,14 +42,19 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, 
             <Dialog>
               <DialogTrigger asChild>
                 <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-                  <span className="text-muted-foreground">G-SEC 10Y</span>
-                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
-                  {gsecSource === 'live' && (
-                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-green/15 text-terminal-green uppercase">live</span>
-                  )}
-                  {gsecSource === 'fallback' && (
-                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-amber/15 text-terminal-amber uppercase">cached</span>
-                  )}
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
+                  </span>
+                  <span className="text-muted-foreground">BENCHMARK</span>
+                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(3)}%</span>
+                  <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
+                    gsecStatus === 'live'
+                      ? 'bg-terminal-green/15 text-terminal-green'
+                      : gsecStatus === 'cached'
+                        ? 'bg-terminal-amber/15 text-terminal-amber'
+                        : 'bg-terminal-red/15 text-terminal-red'
+                  }`}>{pulseLabel}</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-card border-border max-w-lg p-5">
