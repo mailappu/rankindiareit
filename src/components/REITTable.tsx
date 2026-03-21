@@ -317,7 +317,9 @@ export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls, price
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.key)}
-                    className="px-3 py-2.5 text-left text-[10px] text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap select-none"
+                    className={`px-3 py-2.5 text-left text-[10px] text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap select-none ${
+                      col.key === 'name' ? 'sticky left-0 z-20 bg-card' : ''
+                    }`}
                   >
                     <div className="flex items-center gap-1">
                       {col.label}
