@@ -4,7 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
-import { performSmartSync, getProvenanceBadge, type SyncError } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, type SyncError, type DiscoveredUrl } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import {
   LIVE_REIT_DATA,
