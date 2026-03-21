@@ -197,7 +197,7 @@ function REITRow({
           const pdfUrl = (discovered?.discoveredFrom === 'scrape' ? discovered.pdfUrl : null) || reit.latestPdfUrl;
 
           return (
-            <td key={col.key} className="px-3 py-2.5">
+            <td key={col.key} className="px-3 py-2.5 sticky left-0 z-10 bg-card">
               <div className="flex items-center gap-2">
                 {status && (
                   <span
