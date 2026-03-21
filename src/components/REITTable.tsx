@@ -23,6 +23,7 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatm
   { key: 'growth1Y', label: '1Y CAGR', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
   { key: 'growth3Y', label: '3Y CAGR', format: v => v !== null ? `${v.toFixed(1)}%` : '—' },
   { key: 'growth5Y', label: '5Y CAGR', format: v => v !== null ? `${v.toFixed(1)}%` : '—' },
+  { key: 'sinceListing', label: 'Since IPO', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
   { key: 'divScore', label: 'DivScore', format: v => v.toFixed(1) },
   { key: 'valueScore', label: 'Value%', format: v => `${v.toFixed(1)}%`, heatmap: 'valueScore' },
   { key: 'safetyScore', label: 'Safety', format: v => v.toFixed(1) },

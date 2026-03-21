@@ -23,26 +23,44 @@ export function calculateScores(
 
     const pipelineScore = (reit.pipeline / maxPipeline) * 100;
 
-    // FinalScore = weighted sum
+    // Missing data redistribution:
+    // If 3Y or 5Y CAGR is missing, redistribute growth weight to 1Y growth and div yield
+    const has3Y = reit.growth3Y !== null;
+    const has5Y = reit.growth5Y !== null;
+    const missingPenalty = (!has3Y ? 0.15 : 0) + (!has5Y ? 0.1 : 0); // fraction of growth weight to shift
+
     const totalWeight = weights.yield + weights.safety + weights.value + weights.growth + weights.pipeline;
-    const finalScore = totalWeight > 0
-      ? (
-          divScore * (weights.yield / totalWeight) +
-          valueScore * (weights.value / totalWeight) +
-          safetyScore * (weights.safety / totalWeight) +
-          growthScore * (weights.growth / totalWeight) +
-          pipelineScore * (weights.pipeline / totalWeight)
-        )
-      : 0;
+    if (totalWeight === 0) {
+      return {
+        ...reit, divScore: r(divScore), valueScore: r(valueScore),
+        safetyScore: r(safetyScore), growthScore: r(growthScore),
+        pipelineScore: r(pipelineScore), finalScore: 0, rank: 0,
+      };
+    }
+
+    // Effective weights with redistribution
+    const growthRedist = weights.growth * missingPenalty;
+    const effYield = (weights.yield + growthRedist * 0.6) / totalWeight; // 60% to yield
+    const effGrowth = (weights.growth - growthRedist) / totalWeight;
+    const effValue = weights.value / totalWeight;
+    const effSafety = (weights.safety + growthRedist * 0.4) / totalWeight; // 40% to safety
+    const effPipeline = weights.pipeline / totalWeight;
+
+    const finalScore =
+      divScore * effYield +
+      valueScore * effValue +
+      safetyScore * effSafety +
+      growthScore * effGrowth +
+      pipelineScore * effPipeline;
 
     return {
       ...reit,
-      divScore: Math.round(divScore * 10) / 10,
-      valueScore: Math.round(valueScore * 10) / 10,
-      safetyScore: Math.round(safetyScore * 10) / 10,
-      growthScore: Math.round(growthScore * 10) / 10,
-      pipelineScore: Math.round(pipelineScore * 10) / 10,
-      finalScore: Math.round(finalScore * 10) / 10,
+      divScore: r(divScore),
+      valueScore: r(valueScore),
+      safetyScore: r(safetyScore),
+      growthScore: r(growthScore),
+      pipelineScore: r(pipelineScore),
+      finalScore: r(finalScore),
       rank: 0,
     };
   });
@@ -51,6 +69,10 @@ export function calculateScores(
   scored.forEach((s, i) => { s.rank = i + 1; });
 
   return scored;
+}
+
+function r(v: number): number {
+  return Math.round(v * 10) / 10;
 }
 
 export function getHeatmapClass(value: number, metric: string): string {
