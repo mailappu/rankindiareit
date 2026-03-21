@@ -90,6 +90,7 @@ export default function Index() {
       const result = await performSmartSync();
 
       setSourceStatus(result.sourceStatus);
+      setDiscoveredUrls(result.discoveredUrls);
 
       if (result.failed) {
         setSyncFailed(true);
