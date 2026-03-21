@@ -9,15 +9,31 @@ export interface PDFMetadata {
   error: string | null;
 }
 
+export interface SyncError {
+  source: string;
+  url: string;
+  message: string;
+  timestamp: string;
+}
+
 export interface SyncResult {
   changed: boolean;
   checkedCount: number;
   changedSources: string[];
-  errors: string[];
+  errors: SyncError[];
+  sourceStatus: Record<string, 'ok' | 'error'>;
   gsecYield: number | null;
+  failed: boolean;
 }
 
 const STORAGE_KEY = 'reit_pdf_metadata';
+
+const SOURCE_URLS: Record<string, string> = {
+  embassy: 'https://eopwebsvr.blob.core.windows.net/media/filer_public/4f/0c/4f0c413c-e92b-4a7c-9cc3-aff0d5969332/earnings_presentation.pdf',
+  mindspace: 'https://www.mindspacereit.com/wp-content/uploads/2025/11/Investor-Presentation.pdf',
+  brookfield: 'https://www.brookfieldindiareit.in/investors/reports-and-filings',
+  nexus: 'https://www.nexusselecttrust.com/resources/assets/pdf/Nexus-Select-Trust-Dec-25-vf.pdf',
+};
 
 function getStoredMetadata(): Record<string, PDFMetadata> {
   try {
@@ -33,25 +49,68 @@ function storeMetadata(metadata: Record<string, PDFMetadata>) {
 }
 
 export async function performSmartSync(): Promise<SyncResult> {
-  // Call edge function proxy to bypass CORS
-  const { data, error } = await supabase.functions.invoke('sync-proxy');
+  let data: any;
+  let invokeError: any;
 
-  if (error || !data?.success) {
-    throw new Error(error?.message || data?.error || 'Sync proxy failed');
+  try {
+    const result = await supabase.functions.invoke('sync-proxy');
+    data = result.data;
+    invokeError = result.error;
+  } catch (err) {
+    return {
+      changed: false,
+      checkedCount: 0,
+      changedSources: [],
+      errors: [{
+        source: 'Proxy',
+        url: 'sync-proxy',
+        message: err instanceof Error ? err.message : 'Could not reach sync proxy.',
+        timestamp: new Date().toISOString(),
+      }],
+      sourceStatus: Object.fromEntries(Object.keys(SOURCE_URLS).map(k => [k, 'error' as const])),
+      gsecYield: null,
+      failed: true,
+    };
+  }
+
+  if (invokeError || !data?.success) {
+    return {
+      changed: false,
+      checkedCount: 0,
+      changedSources: [],
+      errors: [{
+        source: 'Proxy',
+        url: 'sync-proxy',
+        message: invokeError?.message || data?.error || 'Sync proxy returned an error.',
+        timestamp: new Date().toISOString(),
+      }],
+      sourceStatus: Object.fromEntries(Object.keys(SOURCE_URLS).map(k => [k, 'error' as const])),
+      gsecYield: null,
+      failed: true,
+    };
   }
 
   const stored = getStoredMetadata();
   const changedSources: string[] = [];
-  const errors: string[] = [];
+  const errors: SyncError[] = [];
+  const sourceStatus: Record<string, 'ok' | 'error'> = {};
   const newMeta: Record<string, PDFMetadata> = {};
 
   for (const meta of data.metadata as PDFMetadata[]) {
     newMeta[meta.reitId] = meta;
 
     if (meta.error) {
-      errors.push(`${meta.label}: ${meta.error}`);
+      errors.push({
+        source: meta.label,
+        url: SOURCE_URLS[meta.reitId] || 'unknown',
+        message: meta.error,
+        timestamp: new Date().toISOString(),
+      });
+      sourceStatus[meta.reitId] = 'error';
       continue;
     }
+
+    sourceStatus[meta.reitId] = 'ok';
 
     const prev = stored[meta.reitId];
     if (prev) {
@@ -61,7 +120,6 @@ export async function performSmartSync(): Promise<SyncResult> {
         changedSources.push(meta.label);
       }
     }
-    // First sync = baseline, not flagged as change
   }
 
   storeMetadata(newMeta);
@@ -71,7 +129,9 @@ export async function performSmartSync(): Promise<SyncResult> {
     checkedCount: data.metadata.length,
     changedSources,
     errors,
+    sourceStatus,
     gsecYield: data.gsecYield ?? null,
+    failed: false,
   };
 }
 

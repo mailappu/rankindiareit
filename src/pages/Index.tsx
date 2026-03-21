@@ -4,7 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
-import { performSmartSync, getProvenanceBadge } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, type SyncError } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import {
   LIVE_REIT_DATA,
@@ -24,6 +24,9 @@ export default function Index() {
   const [reitData] = useState(LIVE_REIT_DATA);
   const [provenanceBadge, setProvenanceBadge] = useState<string | null>(null);
   const [gsecStatus, setGsecStatus] = useState<GSecStatus>('fallback');
+  const [syncFailed, setSyncFailed] = useState(false);
+  const [syncErrors, setSyncErrors] = useState<SyncError[]>([]);
+  const [sourceStatus, setSourceStatus] = useState<Record<string, 'ok' | 'error'>>({});
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
@@ -48,6 +51,9 @@ export default function Index() {
         setProvenanceBadge(getProvenanceBadge());
       } catch {
         setGsecStatus('fallback');
+        toast.warning('Live G-Sec unavailable. Defaulting to 6.737% (Mar 21 benchmark).', {
+          description: 'Dividend Score calculation uses fallback rate. Ranking is unaffected.',
+        });
       }
     };
     fetchBenchmark();
@@ -55,11 +61,18 @@ export default function Index() {
 
   const handleSync = useCallback(async () => {
     setIsSyncing(true);
+    setSyncFailed(false);
 
     try {
       // Fetch G-Sec with 3-tier logic (cache-aware)
       const gsecResult = await getGSecYield();
       setGsecStatus(gsecResult.status);
+
+      if (gsecResult.status === 'fallback') {
+        toast.warning('Live G-Sec unavailable. Defaulting to 6.737% (Mar 21 benchmark).', {
+          description: 'Dividend Score calculation uses fallback rate. Ranking is unaffected.',
+        });
+      }
 
       if (gsecResult.changed && gsecResult.previousYield !== null) {
         setGsecYield(gsecResult.yield);
@@ -75,29 +88,56 @@ export default function Index() {
       // Metadata check for PDF sources
       const result = await performSmartSync();
 
-      if (result.changed) {
-        toast.success('New data detected', {
-          description: `Changes found in: ${result.changedSources.join(', ')}. Data refresh needed.`,
+      setSourceStatus(result.sourceStatus);
+
+      if (result.failed) {
+        setSyncFailed(true);
+        setSyncErrors(result.errors);
+        toast.error('Sync Failed', {
+          description: 'Could not reach sync proxy. Using cached values.',
         });
       } else {
-        toast.info('No material change detected in investor reports.', {
-          description: `Data is current. ${result.checkedCount} sources checked via proxy. Tokens saved.`,
-        });
-      }
+        // Partial errors (some sources failed)
+        if (result.errors.length > 0) {
+          setSyncErrors(result.errors);
+          result.errors.forEach(err => {
+            toast.error(`Sync Failed: ${err.source} unreachable`, {
+              description: `Using cached values. ${err.message}`,
+            });
+          });
+        } else {
+          setSyncErrors([]);
+        }
 
-      if (result.errors.length > 0) {
-        toast.warning(`${result.errors.length} source(s) unreachable`, {
-          description: result.errors.join('; '),
-        });
+        if (result.changed) {
+          toast.success('New data detected', {
+            description: `Changes found in: ${result.changedSources.join(', ')}. Data refresh needed.`,
+          });
+        } else if (result.errors.length === 0) {
+          toast.success('Sync Complete', {
+            description: `Data is current as of Mar 21, 2026. ${result.checkedCount} sources verified.`,
+          });
+        }
+
+        setSyncFailed(result.errors.length > 0 && result.errors.length === result.checkedCount);
       }
 
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
       setProvenanceBadge(getProvenanceBadge());
     } catch (err) {
+      setSyncFailed(true);
+      setSyncErrors([{
+        source: 'System',
+        url: 'N/A',
+        message: err instanceof Error ? err.message : 'Unexpected error during sync.',
+        timestamp: new Date().toISOString(),
+      }]);
       toast.error('Sync failed', {
         description: err instanceof Error ? err.message : 'Could not reach proxy. Try again later.',
       });
+      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      setLastSynced(syncTime);
     } finally {
       setIsSyncing(false);
     }
@@ -109,9 +149,11 @@ export default function Index() {
         gsecYield={gsecYield}
         gsecStatus={gsecStatus}
         lastSynced={lastSynced}
+        syncFailed={syncFailed}
         isSyncing={isSyncing}
         onSync={handleSync}
         provenanceBadge={provenanceBadge}
+        syncErrors={syncErrors}
       />
 
       <main className="flex-1 p-6 space-y-4 max-w-[1600px] mx-auto w-full">
@@ -122,7 +164,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} gsecYield={gsecYield} />
+        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} />
 
         <TerminologyCard />
 
