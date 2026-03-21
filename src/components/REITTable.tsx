@@ -162,9 +162,18 @@ export function REITTable({ data, gsecYield, sourceStatus }: REITTableProps) {
                   }
 
                   if (col.key === 'name') {
+                    const status = sourceStatus?.[reit.id];
                     return (
                       <td key={col.key} className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
+                          {status && (
+                            <span
+                              className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+                                status === 'ok' ? 'bg-terminal-green' : 'bg-terminal-red'
+                              }`}
+                              title={status === 'ok' ? 'Source verified' : 'Source unreachable'}
+                            />
+                          )}
                           <div>
                             <div className="font-semibold text-foreground text-xs">{reit.ticker}</div>
                             <div className="text-[10px] text-muted-foreground">{reit.name}</div>

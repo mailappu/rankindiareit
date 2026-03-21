@@ -1,18 +1,21 @@
-import { Activity, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Activity, RefreshCw, ShieldCheck, AlertTriangle, FileWarning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import type { GSecStatus } from '@/lib/gsec-service';
+import type { SyncError } from '@/lib/sync-engine';
 
 interface DashboardHeaderProps {
   gsecYield: number;
   gsecStatus: GSecStatus;
   lastSynced: string | null;
+  syncFailed: boolean;
   isSyncing: boolean;
   onSync: () => void;
   provenanceBadge: string | null;
+  syncErrors: SyncError[];
 }
 
-export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors }: DashboardHeaderProps) {
   const pulseColor = gsecStatus === 'live'
     ? 'bg-terminal-green'
     : gsecStatus === 'cached'
@@ -24,6 +27,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, 
     : gsecStatus === 'cached'
       ? 'CACHED'
       : 'FALLBACK';
+
   return (
     <header className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
@@ -73,7 +77,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-secondary/50 rounded p-3 space-y-1.5">
                       <div className="text-terminal-green font-semibold text-[11px]">DivScore</div>
-                      <code className="text-[10px] text-muted-foreground block">= (REIT_Yield / {gsecYield}%) × 100</code>
+                      <code className="text-[10px] text-muted-foreground block">= (REIT_Yield / {gsecYield.toFixed(3)}%) × 100</code>
                       <p className="text-[10px] text-muted-foreground">Yield premium over risk-free rate.</p>
                     </div>
                     <div className="bg-secondary/50 rounded p-3 space-y-1.5">
@@ -98,7 +102,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, 
                   </div>
                   <div className="bg-terminal-blue/10 border border-terminal-blue/20 rounded p-3">
                     <div className="text-terminal-blue font-semibold text-[11px]">⚡ Age Normalization</div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">For younger REITs (e.g. Nexus, listed May 2023), missing 3Y/5Y CAGR weight is redistributed 60% to Dividend Yield and 40% to Safety, keeping the score fair and out of 100.</p>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">Ranking for younger REITs (like Nexus) is normalized by shifting CAGR weightage to current Yield and Operational Metrics so the final score remains fair and out of 100.</p>
                   </div>
                   <div className="bg-secondary/50 rounded p-3">
                     <div className="text-foreground font-semibold text-[11px]">🔄 Smart Sync</div>
@@ -111,28 +115,78 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, 
             {lastSynced && (
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">SYNCED</span>
-                <span className="text-foreground">{lastSynced}</span>
+                <span className={syncFailed ? 'text-terminal-red' : 'text-foreground'}>
+                  {lastSynced}
+                  {syncFailed && <span className="ml-1 text-terminal-red">(Failed)</span>}
+                </span>
               </div>
             )}
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onSync}
-            disabled={isSyncing}
-            className="font-mono text-xs gap-2 border-terminal-green/30 text-terminal-green hover:bg-terminal-green/10 hover:text-terminal-green"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'CHECKING...' : 'SMART SYNC'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {syncErrors.length > 0 && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="font-mono text-xs gap-1.5 border-terminal-red/30 text-terminal-red hover:bg-terminal-red/10 hover:text-terminal-red"
+                  >
+                    <FileWarning className="h-3.5 w-3.5" />
+                    ERROR LOG ({syncErrors.length})
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-border max-w-lg p-5">
+                  <div className="space-y-3 text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-terminal-red" />
+                      <h2 className="text-sm font-semibold text-foreground">Sync Error Log</h2>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      The following sources encountered errors during the last sync. Existing cached data is preserved.
+                    </p>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {syncErrors.map((err, i) => (
+                        <div key={i} className="bg-terminal-red/5 border border-terminal-red/20 rounded p-3 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-terminal-red font-semibold text-[11px]">{err.source}</span>
+                            <span className="text-[9px] text-muted-foreground">{new Date(err.timestamp).toLocaleTimeString('en-IN')}</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground break-all">{err.message}</p>
+                          <code className="text-[9px] text-muted-foreground/60 block truncate">{err.url}</code>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSync}
+              disabled={isSyncing}
+              className="font-mono text-xs gap-2 border-terminal-green/30 text-terminal-green hover:bg-terminal-green/10 hover:text-terminal-green"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'CHECKING...' : 'SMART SYNC'}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {provenanceBadge && (
+      {provenanceBadge && !syncFailed && (
         <div className="mt-2 flex items-center gap-1.5">
           <ShieldCheck className="h-3 w-3 text-terminal-green" />
           <span className="text-[10px] font-mono text-terminal-green/80">{provenanceBadge}</span>
+        </div>
+      )}
+
+      {syncFailed && (
+        <div className="mt-2 flex items-center gap-1.5">
+          <AlertTriangle className="h-3 w-3 text-terminal-red" />
+          <span className="text-[10px] font-mono text-terminal-red/80">Sync failed — using cached/fallback data. Base values preserved.</span>
         </div>
       )}
     </header>
