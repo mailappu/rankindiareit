@@ -174,7 +174,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} />
+        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} />
 
         <TerminologyCard />
 
