@@ -5,10 +5,10 @@ import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge } from '@/lib/sync-engine';
+import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import {
   LIVE_REIT_DATA,
   DEFAULT_GSEC_YIELD,
-  DATA_VERIFIED_DATE,
   STRATEGY_PRESETS,
   StrategyPreset,
   StrategyWeights,
@@ -23,35 +23,34 @@ export default function Index() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [reitData] = useState(LIVE_REIT_DATA);
   const [provenanceBadge, setProvenanceBadge] = useState<string | null>(null);
-  const [gsecSource, setGsecSource] = useState<'fallback' | 'live'>('fallback');
+  const [gsecStatus, setGsecStatus] = useState<GSecStatus>('fallback');
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
     [reitData, gsecYield, weights]
   );
 
-  // Try to fetch live G-Sec yield on mount
+  // 3-Tier G-Sec pulse on mount
   useEffect(() => {
-    const fetchGsec = async () => {
+    const fetchBenchmark = async () => {
       try {
-        const { performSmartSync: _ } = await import('@/lib/sync-engine');
-        // Quick background check — don't block UI
-        const result = await performSmartSync();
-        if (result.gsecYield && result.gsecYield !== gsecYield) {
-          setGsecYield(result.gsecYield);
-          setGsecSource('live');
-          toast.info(`G-Sec yield updated to ${result.gsecYield}%`, {
-            description: 'Live benchmark data fetched. All scores recalculated.',
+        const result = await getGSecYield();
+        setGsecYield(result.yield);
+        setGsecStatus(result.status);
+
+        if (result.changed && result.previousYield !== null && shouldShowToast(result.previousYield, result.yield)) {
+          toast.info(`Benchmark rate changed to ${result.yield.toFixed(3)}%`, {
+            description: 'Re-calculating Dividend Scores across all REITs.',
           });
         }
+
         setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
         setProvenanceBadge(getProvenanceBadge());
       } catch {
-        // Silently fallback to hardcoded value
-        setGsecSource('fallback');
+        setGsecStatus('fallback');
       }
     };
-    fetchGsec();
+    fetchBenchmark();
   }, []);
 
   const handleSync = useCallback(async () => {
