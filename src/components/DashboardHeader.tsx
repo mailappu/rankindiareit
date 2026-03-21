@@ -4,13 +4,14 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface DashboardHeaderProps {
   gsecYield: number;
+  gsecSource: 'fallback' | 'live';
   lastSynced: string | null;
   isSyncing: boolean;
   onSync: () => void;
   provenanceBadge: string | null;
 }
 
-export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecSource, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
   return (
     <header className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
@@ -26,70 +27,75 @@ export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync, prov
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">G-SEC 10Y</span>
-              <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
-            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+                  <span className="text-muted-foreground">G-SEC 10Y</span>
+                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
+                  {gsecSource === 'live' && (
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-green/15 text-terminal-green uppercase">live</span>
+                  )}
+                  {gsecSource === 'fallback' && (
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-amber/15 text-terminal-amber uppercase">cached</span>
+                  )}
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-card border-border max-w-lg p-5">
+                <div className="space-y-3 text-xs font-mono text-foreground">
+                  <h2 className="text-sm font-semibold text-foreground">Scoring Methodology</h2>
+                  <div className="bg-terminal-amber/10 border border-terminal-amber/20 rounded p-3 mb-3">
+                    <div className="text-terminal-amber font-semibold text-[11px]">Current Benchmark: {gsecYield.toFixed(2)}% G-Sec 10Y</div>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {gsecSource === 'live'
+                        ? 'Fetched live from public bond data. All DivScores recalculate automatically when this changes.'
+                        : 'Using verified fallback rate (Mar 21, 2026). Click Smart Sync to fetch live rate.'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-secondary/50 rounded p-3 space-y-1.5">
+                      <div className="text-terminal-green font-semibold text-[11px]">DivScore</div>
+                      <code className="text-[10px] text-muted-foreground block">= (REIT_Yield / {gsecYield}%) × 100</code>
+                      <p className="text-[10px] text-muted-foreground">Yield premium over risk-free rate.</p>
+                    </div>
+                    <div className="bg-secondary/50 rounded p-3 space-y-1.5">
+                      <div className="text-terminal-amber font-semibold text-[11px]">ValueScore</div>
+                      <code className="text-[10px] text-muted-foreground block">= ((NAV - CMP) / NAV) × 100</code>
+                      <p className="text-[10px] text-muted-foreground">Discount to NAV.</p>
+                    </div>
+                    <div className="bg-secondary/50 rounded p-3 space-y-1.5">
+                      <div className="text-terminal-blue font-semibold text-[11px]">SafetyScore</div>
+                      <code className="text-[10px] text-muted-foreground block">= (Occ + (100-LTV) + WALE×10) / 3</code>
+                      <p className="text-[10px] text-muted-foreground">Direct WALE × 10 scaling.</p>
+                    </div>
+                    <div className="bg-secondary/50 rounded p-3 space-y-1.5">
+                      <div className="text-terminal-cyan font-semibold text-[11px]">GrowthScore</div>
+                      <code className="text-[10px] text-muted-foreground block">= (1Y_CAGR / Max_1Y) × 100</code>
+                      <p className="text-[10px] text-muted-foreground">Normalized to best performer.</p>
+                    </div>
+                  </div>
+                  <div className="bg-secondary/50 rounded p-3">
+                    <div className="text-foreground font-semibold text-[11px]">Final Score</div>
+                    <code className="text-[10px] text-muted-foreground block">= Σ (Component × Weight%) / Total_Weight</code>
+                  </div>
+                  <div className="bg-terminal-blue/10 border border-terminal-blue/20 rounded p-3">
+                    <div className="text-terminal-blue font-semibold text-[11px]">⚡ Age Normalization</div>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">For younger REITs (e.g. Nexus, listed May 2023), missing 3Y/5Y CAGR weight is redistributed 60% to Dividend Yield and 40% to Safety, keeping the score fair and out of 100.</p>
+                  </div>
+                  <div className="bg-secondary/50 rounded p-3">
+                    <div className="text-foreground font-semibold text-[11px]">🔄 Smart Sync</div>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">HEAD requests are proxied through an edge function to bypass CORS. Only re-parses PDFs when content-length or last-modified headers change.</p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             {lastSynced && (
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">LAST SYNC</span>
+                <span className="text-muted-foreground">SYNCED</span>
                 <span className="text-foreground">{lastSynced}</span>
               </div>
             )}
           </div>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="font-mono text-xs gap-1.5 text-terminal-amber hover:bg-terminal-amber/10 hover:text-terminal-amber"
-              >
-                <BookOpen className="h-3.5 w-3.5" />
-                METHODOLOGY
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-card border-border max-w-lg p-5">
-              <div className="space-y-3 text-xs font-mono text-foreground">
-                <h2 className="text-sm font-semibold text-foreground">Scoring Methodology</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                    <div className="text-terminal-green font-semibold text-[11px]">DivScore</div>
-                    <code className="text-[10px] text-muted-foreground block">= (REIT_Yield / G-Sec_Yield) × 100</code>
-                    <p className="text-[10px] text-muted-foreground">Measures yield premium over risk-free rate.</p>
-                  </div>
-                  <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                    <div className="text-terminal-amber font-semibold text-[11px]">ValueScore</div>
-                    <code className="text-[10px] text-muted-foreground block">= ((NAV - CMP) / NAV) × 100</code>
-                    <p className="text-[10px] text-muted-foreground">Discount to NAV. Higher = more undervalued.</p>
-                  </div>
-                  <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                    <div className="text-terminal-blue font-semibold text-[11px]">SafetyScore</div>
-                    <code className="text-[10px] text-muted-foreground block">= (Occupancy + (100 - LTV) + (WALE × 10)) / 3</code>
-                    <p className="text-[10px] text-muted-foreground">Direct WALE × 10 scaling.</p>
-                  </div>
-                  <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                    <div className="text-terminal-cyan font-semibold text-[11px]">GrowthScore</div>
-                    <code className="text-[10px] text-muted-foreground block">= (1Y_CAGR / Max_1Y) × 100</code>
-                    <p className="text-[10px] text-muted-foreground">Normalized relative to best performer in group.</p>
-                  </div>
-                </div>
-                <div className="bg-secondary/50 rounded p-3">
-                  <div className="text-foreground font-semibold text-[11px]">Final Score</div>
-                  <code className="text-[10px] text-muted-foreground block">= Σ (Component × Weight%) / Total_Weight</code>
-                  <p className="text-[10px] text-muted-foreground mt-1">Weights determined by selected strategy preset or custom sliders.</p>
-                </div>
-                <div className="bg-terminal-amber/10 border border-terminal-amber/20 rounded p-3">
-                  <div className="text-terminal-amber font-semibold text-[11px]">⚡ Age Normalization</div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">Ranking for younger REITs (like Nexus) is normalized by shifting missing CAGR weightage to current Dividend Yield and Safety metrics, ensuring fair comparison across different listing vintages.</p>
-                </div>
-                <div className="bg-terminal-blue/10 border border-terminal-blue/20 rounded p-3">
-                  <div className="text-terminal-blue font-semibold text-[11px]">🔄 Smart Sync Logic</div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">Before parsing PDFs, the engine performs HTTP HEAD requests to check content-length and last-modified headers against cached values. Only downloads and re-extracts data when changes are detected — saving tokens and API calls.</p>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           <Button
             variant="outline"
