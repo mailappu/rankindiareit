@@ -78,6 +78,10 @@ export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync }: Da
                   <code className="text-[10px] text-muted-foreground block">= Σ (Component × Weight%) / Total_Weight</code>
                   <p className="text-[10px] text-muted-foreground mt-1">Weights determined by selected strategy preset or custom sliders.</p>
                 </div>
+                <div className="bg-terminal-amber/10 border border-terminal-amber/20 rounded p-3">
+                  <div className="text-terminal-amber font-semibold text-[11px]">⚡ Age Normalization</div>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">Ranking for younger REITs (like Nexus) is normalized by shifting missing CAGR weightage to current Dividend Yield and Safety metrics, ensuring fair comparison across different listing vintages.</p>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
