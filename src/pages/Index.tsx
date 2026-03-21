@@ -121,6 +121,14 @@ export default function Index() {
           });
         }
 
+        // Notify about newly discovered presentation URLs
+        if (result.newDiscoveries.length > 0) {
+          const names = result.newDiscoveries.map(id => result.discoveredUrls[id]?.label || id);
+          toast.info('New quarterly report discovered and parsed.', {
+            description: `Updated: ${names.join(', ')}`,
+          });
+        }
+
         setSyncFailed(result.errors.length > 0 && result.errors.length === result.checkedCount);
       }
 
