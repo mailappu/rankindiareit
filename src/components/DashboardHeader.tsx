@@ -12,7 +12,18 @@ interface DashboardHeaderProps {
   provenanceBadge: string | null;
 }
 
-export function DashboardHeader({ gsecYield, gsecSource, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
+  const pulseColor = gsecStatus === 'live'
+    ? 'bg-terminal-green'
+    : gsecStatus === 'cached'
+      ? 'bg-terminal-amber'
+      : 'bg-terminal-red';
+
+  const pulseLabel = gsecStatus === 'live'
+    ? 'LIVE'
+    : gsecStatus === 'cached'
+      ? 'CACHED'
+      : 'FALLBACK';
   return (
     <header className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
