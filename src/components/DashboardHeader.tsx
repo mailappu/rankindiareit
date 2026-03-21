@@ -1,4 +1,4 @@
-import { Activity, RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck } from 'lucide-react';
+import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import type { GSecStatus } from '@/lib/gsec-service';
