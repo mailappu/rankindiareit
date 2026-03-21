@@ -56,6 +56,8 @@ export default function Index() {
         />
 
         <REITTable data={scoredData} gsecYield={gsecYield} />
+
+        <TerminologyCard />
       </main>
     </div>
   );
