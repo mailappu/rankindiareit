@@ -46,7 +46,7 @@ export const STRATEGY_PRESETS: Record<Exclude<StrategyPreset, 'custom'>, Strateg
   riskAverse: { yield: 20, safety: 60, value: 20, growth: 0, pipeline: 0 },
 };
 
-export const DEFAULT_GSEC_YIELD = 6.77;
+export const DEFAULT_GSEC_YIELD = 6.74;
 export const DATA_VERIFIED_DATE = 'March 21, 2026';
 export const CURRENT_DATE = '2026-03-21';
 

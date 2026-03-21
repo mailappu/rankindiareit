@@ -69,7 +69,7 @@ export async function getGSecYield(): Promise<{
   try {
     const { data, error } = await supabase.functions.invoke('sync-proxy');
 
-    if (!error && data?.gsecYield && data.gsecYield > 4 && data.gsecYield < 12) {
+    if (!error && data?.gsecYield && data.gsecYield >= VALID_YIELD_MIN && data.gsecYield <= VALID_YIELD_MAX) {
       const newYield = data.gsecYield;
       const yieldChanged = previousYield !== null &&
         Math.abs(newYield - previousYield) >= SIGNIFICANT_CHANGE_THRESHOLD;
