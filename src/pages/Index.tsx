@@ -57,29 +57,32 @@ export default function Index() {
     setIsSyncing(true);
 
     try {
-      const result = await performSmartSync();
-      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      // Fetch G-Sec with 3-tier logic (cache-aware)
+      const gsecResult = await getGSecYield();
+      setGsecStatus(gsecResult.status);
 
-      // Update G-Sec if new value fetched
-      if (result.gsecYield && result.gsecYield !== gsecYield) {
-        setGsecYield(result.gsecYield);
-        setGsecSource('live');
-        toast.info(`G-Sec benchmark updated: ${result.gsecYield}%`, {
-          description: 'Dividend scores recalculated with live rate.',
-        });
+      if (gsecResult.changed && gsecResult.previousYield !== null) {
+        setGsecYield(gsecResult.yield);
+        if (shouldShowToast(gsecResult.previousYield, gsecResult.yield)) {
+          toast.info(`Benchmark rate changed to ${gsecResult.yield.toFixed(3)}%`, {
+            description: 'Re-calculating Dividend Scores across all REITs.',
+          });
+        }
+      } else if (gsecResult.yield !== gsecYield) {
+        setGsecYield(gsecResult.yield);
       }
+
+      // Metadata check for PDF sources
+      const result = await performSmartSync();
 
       if (result.changed) {
         toast.success('New data detected', {
           description: `Changes found in: ${result.changedSources.join(', ')}. Data refresh needed.`,
         });
       } else {
-        toast.info(
-          `No material change detected in investor reports.`,
-          {
-            description: `Data is current as of ${DATA_VERIFIED_DATE}. ${result.checkedCount} sources checked via proxy. Tokens saved.`,
-          }
-        );
+        toast.info('No material change detected in investor reports.', {
+          description: `Data is current. ${result.checkedCount} sources checked via proxy. Tokens saved.`,
+        });
       }
 
       if (result.errors.length > 0) {
@@ -88,6 +91,7 @@ export default function Index() {
         });
       }
 
+      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
       setProvenanceBadge(getProvenanceBadge());
     } catch (err) {
