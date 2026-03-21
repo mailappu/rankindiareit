@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
-import { MethodologyCard } from '@/components/MethodologyCard';
+
 import { calculateScores } from '@/lib/reit-scoring';
 import {
   LIVE_REIT_DATA,
