@@ -1,4 +1,4 @@
-import { Activity, RefreshCw, BookOpen } from 'lucide-react';
+import { Activity, RefreshCw, BookOpen, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
@@ -7,11 +7,12 @@ interface DashboardHeaderProps {
   lastSynced: string | null;
   isSyncing: boolean;
   onSync: () => void;
+  provenanceBadge: string | null;
 }
 
-export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
   return (
-    <header className="border-b border-border px-6 py-4">
+    <header className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -82,6 +83,10 @@ export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync }: Da
                   <div className="text-terminal-amber font-semibold text-[11px]">⚡ Age Normalization</div>
                   <p className="text-[10px] text-muted-foreground leading-relaxed">Ranking for younger REITs (like Nexus) is normalized by shifting missing CAGR weightage to current Dividend Yield and Safety metrics, ensuring fair comparison across different listing vintages.</p>
                 </div>
+                <div className="bg-terminal-blue/10 border border-terminal-blue/20 rounded p-3">
+                  <div className="text-terminal-blue font-semibold text-[11px]">🔄 Smart Sync Logic</div>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">Before parsing PDFs, the engine performs HTTP HEAD requests to check content-length and last-modified headers against cached values. Only downloads and re-extracts data when changes are detected — saving tokens and API calls.</p>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -94,10 +99,17 @@ export function DashboardHeader({ gsecYield, lastSynced, isSyncing, onSync }: Da
             className="font-mono text-xs gap-2 border-terminal-green/30 text-terminal-green hover:bg-terminal-green/10 hover:text-terminal-green"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'SYNCING...' : 'SMART SYNC'}
+            {isSyncing ? 'CHECKING...' : 'SMART SYNC'}
           </Button>
         </div>
       </div>
+
+      {provenanceBadge && (
+        <div className="mt-2 flex items-center gap-1.5">
+          <ShieldCheck className="h-3 w-3 text-terminal-green" />
+          <span className="text-[10px] font-mono text-terminal-green/80">{provenanceBadge}</span>
+        </div>
+      )}
     </header>
   );
 }
