@@ -93,8 +93,8 @@ export async function getGSecYield(): Promise<{
 
 
   return {
-    yield: fallbackYield,
-    status: cache ? getCacheAge(cache) : 'fallback',
+    yield: FALLBACK_YIELD,
+    status: 'fallback',
     changed: false,
     previousYield: null,
   };

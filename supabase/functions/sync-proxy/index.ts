@@ -76,22 +76,29 @@ Deno.serve(async (req) => {
     // Also try to fetch live G-Sec yield
     let gsecYield: number | null = null;
     try {
-      // Try WorldGovernmentBonds or similar public source
       const gsecResp = await fetch(
         'https://www.worldgovernmentbonds.com/bond-historical-data/india/10-years/',
-        {
-          headers: { 'User-Agent': 'SmartREITAnalyst/1.0' },
-        }
+        { headers: { 'User-Agent': 'SmartREITAnalyst/1.0' } }
       );
       const html = await gsecResp.text();
-      // Extract yield from the page — look for the current yield value
-      const yieldMatch = html.match(/(\d+\.\d+)\s*%/);
-      if (yieldMatch) {
-        const parsed = parseFloat(yieldMatch[1]);
-        if (parsed > 4 && parsed < 12) {
-          gsecYield = parsed;
+      // Look for the yield value in the page's data table — typically in a pattern like ">6.74%<"
+      // or "Yield: 6.74%" or within a td element. Try multiple patterns.
+      const patterns = [
+        /Current Yield[^>]*>[\s]*(\d+\.\d+)\s*%/i,
+        /class="[^"]*yield[^"]*"[^>]*>[\s]*(\d+\.\d+)\s*%/i,
+        /<td[^>]*>[\s]*(\d\.\d{2,3})[\s]*%[\s]*<\/td>/i,
+      ];
+      for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match) {
+          const parsed = parseFloat(match[1]);
+          if (parsed >= 5.5 && parsed <= 7.5) {
+            gsecYield = parsed;
+            break;
+          }
         }
       }
+      // If specific patterns fail, don't fall back to generic regex — return null
     } catch {
       // Fallback handled on frontend
     }
