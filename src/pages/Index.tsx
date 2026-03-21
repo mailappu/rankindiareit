@@ -5,10 +5,10 @@ import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge } from '@/lib/sync-engine';
+import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import {
   LIVE_REIT_DATA,
   DEFAULT_GSEC_YIELD,
-  DATA_VERIFIED_DATE,
   STRATEGY_PRESETS,
   StrategyPreset,
   StrategyWeights,
@@ -23,64 +23,66 @@ export default function Index() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [reitData] = useState(LIVE_REIT_DATA);
   const [provenanceBadge, setProvenanceBadge] = useState<string | null>(null);
-  const [gsecSource, setGsecSource] = useState<'fallback' | 'live'>('fallback');
+  const [gsecStatus, setGsecStatus] = useState<GSecStatus>('fallback');
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
     [reitData, gsecYield, weights]
   );
 
-  // Try to fetch live G-Sec yield on mount
+  // 3-Tier G-Sec pulse on mount
   useEffect(() => {
-    const fetchGsec = async () => {
+    const fetchBenchmark = async () => {
       try {
-        const { performSmartSync: _ } = await import('@/lib/sync-engine');
-        // Quick background check — don't block UI
-        const result = await performSmartSync();
-        if (result.gsecYield && result.gsecYield !== gsecYield) {
-          setGsecYield(result.gsecYield);
-          setGsecSource('live');
-          toast.info(`G-Sec yield updated to ${result.gsecYield}%`, {
-            description: 'Live benchmark data fetched. All scores recalculated.',
+        const result = await getGSecYield();
+        setGsecYield(result.yield);
+        setGsecStatus(result.status);
+
+        if (result.changed && result.previousYield !== null && shouldShowToast(result.previousYield, result.yield)) {
+          toast.info(`Benchmark rate changed to ${result.yield.toFixed(3)}%`, {
+            description: 'Re-calculating Dividend Scores across all REITs.',
           });
         }
+
         setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
         setProvenanceBadge(getProvenanceBadge());
       } catch {
-        // Silently fallback to hardcoded value
-        setGsecSource('fallback');
+        setGsecStatus('fallback');
       }
     };
-    fetchGsec();
+    fetchBenchmark();
   }, []);
 
   const handleSync = useCallback(async () => {
     setIsSyncing(true);
 
     try {
-      const result = await performSmartSync();
-      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      // Fetch G-Sec with 3-tier logic (cache-aware)
+      const gsecResult = await getGSecYield();
+      setGsecStatus(gsecResult.status);
 
-      // Update G-Sec if new value fetched
-      if (result.gsecYield && result.gsecYield !== gsecYield) {
-        setGsecYield(result.gsecYield);
-        setGsecSource('live');
-        toast.info(`G-Sec benchmark updated: ${result.gsecYield}%`, {
-          description: 'Dividend scores recalculated with live rate.',
-        });
+      if (gsecResult.changed && gsecResult.previousYield !== null) {
+        setGsecYield(gsecResult.yield);
+        if (shouldShowToast(gsecResult.previousYield, gsecResult.yield)) {
+          toast.info(`Benchmark rate changed to ${gsecResult.yield.toFixed(3)}%`, {
+            description: 'Re-calculating Dividend Scores across all REITs.',
+          });
+        }
+      } else if (gsecResult.yield !== gsecYield) {
+        setGsecYield(gsecResult.yield);
       }
+
+      // Metadata check for PDF sources
+      const result = await performSmartSync();
 
       if (result.changed) {
         toast.success('New data detected', {
           description: `Changes found in: ${result.changedSources.join(', ')}. Data refresh needed.`,
         });
       } else {
-        toast.info(
-          `No material change detected in investor reports.`,
-          {
-            description: `Data is current as of ${DATA_VERIFIED_DATE}. ${result.checkedCount} sources checked via proxy. Tokens saved.`,
-          }
-        );
+        toast.info('No material change detected in investor reports.', {
+          description: `Data is current. ${result.checkedCount} sources checked via proxy. Tokens saved.`,
+        });
       }
 
       if (result.errors.length > 0) {
@@ -89,6 +91,7 @@ export default function Index() {
         });
       }
 
+      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
       setProvenanceBadge(getProvenanceBadge());
     } catch (err) {
@@ -104,7 +107,7 @@ export default function Index() {
     <div className="min-h-screen flex flex-col">
       <DashboardHeader
         gsecYield={gsecYield}
-        gsecSource={gsecSource}
+        gsecStatus={gsecStatus}
         lastSynced={lastSynced}
         isSyncing={isSyncing}
         onSync={handleSync}

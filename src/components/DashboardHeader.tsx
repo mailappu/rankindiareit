@@ -1,17 +1,29 @@
-import { Activity, RefreshCw, BookOpen, ShieldCheck } from 'lucide-react';
+import { Activity, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import type { GSecStatus } from '@/lib/gsec-service';
 
 interface DashboardHeaderProps {
   gsecYield: number;
-  gsecSource: 'fallback' | 'live';
+  gsecStatus: GSecStatus;
   lastSynced: string | null;
   isSyncing: boolean;
   onSync: () => void;
   provenanceBadge: string | null;
 }
 
-export function DashboardHeader({ gsecYield, gsecSource, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, onSync, provenanceBadge }: DashboardHeaderProps) {
+  const pulseColor = gsecStatus === 'live'
+    ? 'bg-terminal-green'
+    : gsecStatus === 'cached'
+      ? 'bg-terminal-amber'
+      : 'bg-terminal-red';
+
+  const pulseLabel = gsecStatus === 'live'
+    ? 'LIVE'
+    : gsecStatus === 'cached'
+      ? 'CACHED'
+      : 'FALLBACK';
   return (
     <header className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
@@ -30,25 +42,32 @@ export function DashboardHeader({ gsecYield, gsecSource, lastSynced, isSyncing, 
             <Dialog>
               <DialogTrigger asChild>
                 <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-                  <span className="text-muted-foreground">G-SEC 10Y</span>
-                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
-                  {gsecSource === 'live' && (
-                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-green/15 text-terminal-green uppercase">live</span>
-                  )}
-                  {gsecSource === 'fallback' && (
-                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-amber/15 text-terminal-amber uppercase">cached</span>
-                  )}
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
+                  </span>
+                  <span className="text-muted-foreground">BENCHMARK</span>
+                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(3)}%</span>
+                  <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
+                    gsecStatus === 'live'
+                      ? 'bg-terminal-green/15 text-terminal-green'
+                      : gsecStatus === 'cached'
+                        ? 'bg-terminal-amber/15 text-terminal-amber'
+                        : 'bg-terminal-red/15 text-terminal-red'
+                  }`}>{pulseLabel}</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-card border-border max-w-lg p-5">
                 <div className="space-y-3 text-xs font-mono text-foreground">
                   <h2 className="text-sm font-semibold text-foreground">Scoring Methodology</h2>
                   <div className="bg-terminal-amber/10 border border-terminal-amber/20 rounded p-3 mb-3">
-                    <div className="text-terminal-amber font-semibold text-[11px]">Current Benchmark: {gsecYield.toFixed(2)}% G-Sec 10Y</div>
+                    <div className="text-terminal-amber font-semibold text-[11px]">Current Benchmark: {gsecYield.toFixed(3)}% G-Sec 10Y</div>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      {gsecSource === 'live'
-                        ? 'Fetched live from public bond data. All DivScores recalculate automatically when this changes.'
-                        : 'Using verified fallback rate (Mar 21, 2026). Click Smart Sync to fetch live rate.'}
+                      {gsecStatus === 'live'
+                        ? 'Fetched live from public bond data (cached for 4 hours). All DivScores recalculate automatically when this changes by ≥0.02%.'
+                        : gsecStatus === 'cached'
+                          ? 'Using cached rate (over 4 hours old). Click Smart Sync to refresh.'
+                          : 'Using verified fallback rate (Mar 21, 2026). Click Smart Sync to fetch live rate.'}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
