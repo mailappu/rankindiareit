@@ -1,10 +1,11 @@
-import { Activity, RefreshCw, BookOpen, ShieldCheck } from 'lucide-react';
+import { Activity, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import type { GSecStatus } from '@/lib/gsec-service';
 
 interface DashboardHeaderProps {
   gsecYield: number;
-  gsecSource: 'fallback' | 'live';
+  gsecStatus: GSecStatus;
   lastSynced: string | null;
   isSyncing: boolean;
   onSync: () => void;
