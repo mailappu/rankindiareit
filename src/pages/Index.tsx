@@ -27,6 +27,7 @@ export default function Index() {
   const [syncFailed, setSyncFailed] = useState(false);
   const [syncErrors, setSyncErrors] = useState<SyncError[]>([]);
   const [sourceStatus, setSourceStatus] = useState<Record<string, 'ok' | 'error'>>({});
+  const [discoveredUrls, setDiscoveredUrls] = useState<Record<string, DiscoveredUrl>>(getStoredDiscoveredUrls);
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
