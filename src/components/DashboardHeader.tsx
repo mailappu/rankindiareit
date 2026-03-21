@@ -31,14 +31,15 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
   return (
     <header className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-terminal-green" />
-            <h1 className="text-lg font-semibold font-mono tracking-tight text-foreground">
-              SMART REIT ANALYST
-            </h1>
-          </div>
-          <span className="text-xs text-muted-foreground font-mono">INDIA</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              <h1 className="text-lg tracking-tight text-foreground">
+                <span className="font-bold">RankIndia</span><span className="font-light text-primary">REIT</span>
+              </h1>
+              <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary">BETA</span>
+            </div>
+            <span className="hidden sm:block text-[10px] text-muted-foreground font-mono border-l border-border pl-3">AI-Powered Yield Analysis &amp; Risk Benchmarking</span>
         </div>
 
         <div className="flex items-center gap-4">
