@@ -168,8 +168,8 @@ export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls }: REI
                     if (col.key === 'name') {
                       const status = sourceStatus?.[reit.id];
                       const discovered = discoveredUrls?.[reit.id];
-                      const presentationUrl = discovered?.pdfUrl || reit.irUrl;
-                      const isFromScrape = discovered?.discoveredFrom === 'scrape';
+                      // Prefer dynamically discovered URL, then static latestPdfUrl
+                      const pdfUrl = (discovered?.discoveredFrom === 'scrape' ? discovered.pdfUrl : null) || reit.latestPdfUrl;
 
                       return (
                         <td key={col.key} className="px-3 py-2.5">
@@ -187,33 +187,29 @@ export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls }: REI
                               <div className="text-[10px] text-muted-foreground">{reit.name}</div>
                             </div>
                             <div className="flex items-center gap-1">
-                              {/* View Latest Presentation button */}
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={presentationUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`transition-colors ${
-                                      isFromScrape
-                                        ? 'text-terminal-green hover:text-terminal-green/80'
-                                        : 'text-muted-foreground hover:text-terminal-blue'
-                                    }`}
-                                  >
-                                    <FileText className="h-3 w-3" />
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-[10px] font-mono max-w-[200px]">
-                                  <p className="font-semibold">
-                                    {isFromScrape ? 'View Latest Presentation' : 'View IR Page'}
-                                  </p>
-                                  {discovered && (
-                                    <p className="text-muted-foreground truncate">{discovered.label}</p>
-                                  )}
-                                </TooltipContent>
-                              </Tooltip>
-                              {/* IR page link */}
-                              <a href={reit.irUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-terminal-blue">
+                              {/* PDF icon — only shown when a valid PDF URL exists */}
+                              {pdfUrl && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <a
+                                      href={pdfUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-terminal-green hover:text-terminal-green/80 transition-colors"
+                                    >
+                                      <FileText className="h-3 w-3" />
+                                    </a>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="text-[10px] font-mono max-w-[200px]">
+                                    <p className="font-semibold">View Latest Presentation</p>
+                                    {discovered?.label && (
+                                      <p className="text-muted-foreground truncate">{discovered.label}</p>
+                                    )}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                              {/* Website/IR page link */}
+                              <a href={reit.irUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-terminal-blue transition-colors">
                                 <ExternalLink className="h-3 w-3" />
                               </a>
                             </div>

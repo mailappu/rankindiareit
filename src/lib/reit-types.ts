@@ -6,11 +6,11 @@ export interface REITData {
   cmp: number;
   nav: number;
   listingPrice: number;
-  listingDate: string; // ISO date
+  listingDate: string;
   growth1Y: number;
   growth3Y: number | null;
   growth5Y: number | null;
-  sinceListing: number; // CAGR since listing
+  sinceListing: number;
   divYield: number;
   occupancy: number;
   wale: number;
@@ -18,6 +18,7 @@ export interface REITData {
   pipeline: number;
   lastUpdated: string;
   irUrl: string;
+  latestPdfUrl: string | null;
 }
 
 export interface ScoreBreakdown {
@@ -64,14 +65,11 @@ function buildREITData(
   id: string, name: string, ticker: string, sector: 'Office' | 'Retail',
   cmp: number, nav: number, listingPrice: number, listingDate: string,
   divYield: number, occupancy: number, wale: number, ltv: number,
-  pipeline: number, irUrl: string
+  pipeline: number, irUrl: string, latestPdfUrl: string | null
 ): REITData {
   const age = yearsSince(listingDate, CURRENT_DATE);
   const sinceListing = calcCAGR(listingPrice, cmp, age);
-
-  // Calculate CAGRs based on age
-  // We use listing price as proxy for older prices when age < period
-  const growth1Y = 0; // Will be set from live data
+  const growth1Y = 0;
   const growth3Y = age >= 3 ? calcCAGR(listingPrice, cmp, Math.min(age, 3)) : null;
   const growth5Y = age >= 5 ? calcCAGR(listingPrice, cmp, Math.min(age, 5)) : null;
 
@@ -81,6 +79,7 @@ function buildREITData(
     divYield, occupancy, wale, ltv, pipeline,
     lastUpdated: CURRENT_DATE,
     irUrl,
+    latestPdfUrl,
   };
 }
 
@@ -88,16 +87,20 @@ function buildREITData(
 const rawData = [
   buildREITData('embassy', 'Embassy Office Parks', 'EMBASSY', 'Office',
     416.68, 398, 300, '2019-04-01', 5.57, 87, 6.4, 38, 7.6,
-    'https://www.embassyofficeparks.com/investors'),
+    'https://www.embassyofficeparks.com/investors/',
+    'https://eopwebsvr.blob.core.windows.net/media/filer_public/4f/0c/4f0c413c-e92b-4a7c-9cc3-aff0d5969332/earnings_presentation.pdf'),
   buildREITData('mindspace', 'Mindspace Business Parks', 'MINDSPACE', 'Office',
     457.02, 452, 275, '2020-08-01', 5.10, 91, 6.1, 24, 5.2,
-    'https://www.mindspacereit.com/investor-relations'),
+    'https://www.mindspacereit.com/investor-relations',
+    'https://www.mindspacereit.com/wp-content/uploads/2026/01/Investor-Presentation_Q3-FY26-1.pdf'),
   buildREITData('brookfield', 'Brookfield India Real Estate Trust', 'BIRET', 'Office',
     327.24, 331, 275, '2021-02-01', 7.92, 85, 6.0, 35, 4.8,
-    'https://www.brookfieldindiareit.in/investors'),
+    'https://www.brookfieldindiareit.in/investors',
+    'https://media.brookfieldindiareit.in/Brookfield_REIT_Earnings_Jan30_2026_f4421e7b0a.pdf'),
   buildREITData('nexus', 'Nexus Select Trust', 'NXST', 'Retail',
     154.68, 148, 100, '2023-05-01', 6.05, 97, 5.5, 18, 3.1,
-    'https://www.nexusselecttrust.com/investor-relation'),
+    'https://www.nexusselecttrust.com/investors',
+    'https://www.nexusselecttrust.com/resources/assets/pdf/Nexus-Select-Trust-Dec-25-vf.pdf'),
 ];
 
 // Override with live 1Y growth data
