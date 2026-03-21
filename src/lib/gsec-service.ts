@@ -87,11 +87,10 @@ export async function getGSecYield(): Promise<{
     // Fall through to tier 3
   }
 
-  // Tier 3: Fallback
-  const fallbackYield = cache?.yield ?? FALLBACK_YIELD;
-  if (!cache || cache.source !== 'live') {
-    setCache({ yield: fallbackYield, fetchedAt: Date.now(), source: 'fallback' });
-  }
+  // Tier 3: Fallback — always use hardcoded value, never a stale invalid cache
+  // Clear any bad cached data
+  setCache({ yield: FALLBACK_YIELD, fetchedAt: Date.now(), source: 'fallback' });
+
 
   return {
     yield: fallbackYield,
