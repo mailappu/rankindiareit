@@ -117,6 +117,6 @@ export const LIVE_REIT_DATA: REITData[] = [
     ltv: 18,
     pipeline: 3.1,
     lastUpdated: '2026-03-21',
-    irUrl: 'https://www.nexusselecttrust.com/investors',
+    irUrl: 'https://www.nexusselecttrust.com/investor-relations',
   },
 ];
