@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, Info } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, FileText, Info } from 'lucide-react';
 import { REITData, ScoreBreakdown } from '@/lib/reit-types';
 import { getHeatmapClass } from '@/lib/reit-scoring';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import type { DiscoveredUrl } from '@/lib/sync-engine';
 
 type ScoredREIT = REITData & ScoreBreakdown;
 type SortKey = keyof ScoredREIT;
@@ -11,6 +13,7 @@ interface REITTableProps {
   data: ScoredREIT[];
   gsecYield: number;
   sourceStatus?: Record<string, 'ok' | 'error'>;
+  discoveredUrls?: Record<string, DiscoveredUrl>;
 }
 
 const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatmap?: string }[] = [
@@ -82,7 +85,7 @@ function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: nu
   );
 }
 
-export function REITTable({ data, gsecYield, sourceStatus }: REITTableProps) {
+export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -110,105 +113,139 @@ export function REITTable({ data, gsecYield, sourceStatus }: REITTableProps) {
   };
 
   return (
-    <div className="card-terminal overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs font-mono">
-          <thead>
-            <tr className="border-b border-border">
-              {COLUMNS.map(col => (
-                <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="px-3 py-2.5 text-left text-[10px] text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap select-none"
-                >
-                  <div className="flex items-center gap-1">
-                    {col.label}
-                    {sortKey === col.key ? (
-                      sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                    ) : (
-                      <ArrowUpDown className="h-3 w-3 opacity-30" />
-                    )}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((reit) => (
-              <tr key={reit.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                {COLUMNS.map(col => {
-                  const val = reit[col.key];
-                  const heatClass = col.heatmap && val !== null ? getHeatmapClass(val as number, col.heatmap) : '';
-
-                  if (col.key === 'rank') {
-                    return (
-                      <td key={col.key} className="px-3 py-2.5">
-                        <span className={`font-bold text-sm ${getRankBadge(reit.rank)}`}>
-                          {reit.rank}
-                        </span>
-                      </td>
-                    );
-                  }
-
-                  if (col.key === 'finalScore') {
-                    return (
-                      <td key={col.key} className={`px-3 py-2.5 font-bold text-sm text-foreground ${heatClass}`}>
-                        <div className="flex items-center">
-                          {reit.finalScore.toFixed(1)}
-                          <ScoreInfoPopover reit={reit} gsecYield={gsecYield} />
-                        </div>
-                      </td>
-                    );
-                  }
-
-                  if (col.key === 'name') {
-                    const status = sourceStatus?.[reit.id];
-                    return (
-                      <td key={col.key} className="px-3 py-2.5">
-                        <div className="flex items-center gap-2">
-                          {status && (
-                            <span
-                              className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                                status === 'ok' ? 'bg-terminal-green' : 'bg-terminal-red'
-                              }`}
-                              title={status === 'ok' ? 'Source verified' : 'Source unreachable'}
-                            />
-                          )}
-                          <div>
-                            <div className="font-semibold text-foreground text-xs">{reit.ticker}</div>
-                            <div className="text-[10px] text-muted-foreground">{reit.name}</div>
-                          </div>
-                          <a href={reit.irUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-terminal-blue">
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        </div>
-                      </td>
-                    );
-                  }
-
-                  if (col.key === 'sector') {
-                    return (
-                      <td key={col.key} className="px-3 py-2.5">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                          reit.sector === 'Retail' ? 'bg-terminal-amber/15 text-terminal-amber' : 'bg-terminal-blue/15 text-terminal-blue'
-                        }`}>
-                          {reit.sector}
-                        </span>
-                      </td>
-                    );
-                  }
-
-                  return (
-                    <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground ${val === null ? 'text-muted-foreground italic' : ''}`}>
-                      {col.format ? col.format(val) : String(val)}
-                    </td>
-                  );
-                })}
+    <TooltipProvider>
+      <div className="card-terminal overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs font-mono">
+            <thead>
+              <tr className="border-b border-border">
+                {COLUMNS.map(col => (
+                  <th
+                    key={col.key}
+                    onClick={() => handleSort(col.key)}
+                    className="px-3 py-2.5 text-left text-[10px] text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap select-none"
+                  >
+                    <div className="flex items-center gap-1">
+                      {col.label}
+                      {sortKey === col.key ? (
+                        sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 opacity-30" />
+                      )}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {sorted.map((reit) => (
+                <tr key={reit.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                  {COLUMNS.map(col => {
+                    const val = reit[col.key];
+                    const heatClass = col.heatmap && val !== null ? getHeatmapClass(val as number, col.heatmap) : '';
+
+                    if (col.key === 'rank') {
+                      return (
+                        <td key={col.key} className="px-3 py-2.5">
+                          <span className={`font-bold text-sm ${getRankBadge(reit.rank)}`}>
+                            {reit.rank}
+                          </span>
+                        </td>
+                      );
+                    }
+
+                    if (col.key === 'finalScore') {
+                      return (
+                        <td key={col.key} className={`px-3 py-2.5 font-bold text-sm text-foreground ${heatClass}`}>
+                          <div className="flex items-center">
+                            {reit.finalScore.toFixed(1)}
+                            <ScoreInfoPopover reit={reit} gsecYield={gsecYield} />
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    if (col.key === 'name') {
+                      const status = sourceStatus?.[reit.id];
+                      const discovered = discoveredUrls?.[reit.id];
+                      const presentationUrl = discovered?.pdfUrl || reit.irUrl;
+                      const isFromScrape = discovered?.discoveredFrom === 'scrape';
+
+                      return (
+                        <td key={col.key} className="px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            {status && (
+                              <span
+                                className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+                                  status === 'ok' ? 'bg-terminal-green' : 'bg-terminal-red'
+                                }`}
+                                title={status === 'ok' ? 'Source verified' : 'Source unreachable'}
+                              />
+                            )}
+                            <div>
+                              <div className="font-semibold text-foreground text-xs">{reit.ticker}</div>
+                              <div className="text-[10px] text-muted-foreground">{reit.name}</div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {/* View Latest Presentation button */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={presentationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`transition-colors ${
+                                      isFromScrape
+                                        ? 'text-terminal-green hover:text-terminal-green/80'
+                                        : 'text-muted-foreground hover:text-terminal-blue'
+                                    }`}
+                                  >
+                                    <FileText className="h-3 w-3" />
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-[10px] font-mono max-w-[200px]">
+                                  <p className="font-semibold">
+                                    {isFromScrape ? 'View Latest Presentation' : 'View IR Page'}
+                                  </p>
+                                  {discovered && (
+                                    <p className="text-muted-foreground truncate">{discovered.label}</p>
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                              {/* IR page link */}
+                              <a href={reit.irUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-terminal-blue">
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    if (col.key === 'sector') {
+                      return (
+                        <td key={col.key} className="px-3 py-2.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                            reit.sector === 'Retail' ? 'bg-terminal-amber/15 text-terminal-amber' : 'bg-terminal-blue/15 text-terminal-blue'
+                          }`}>
+                            {reit.sector}
+                          </span>
+                        </td>
+                      );
+                    }
+
+                    return (
+                      <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground ${val === null ? 'text-muted-foreground italic' : ''}`}>
+                        {col.format ? col.format(val) : String(val)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

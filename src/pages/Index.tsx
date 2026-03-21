@@ -4,7 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
-import { performSmartSync, getProvenanceBadge, type SyncError } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, type SyncError, type DiscoveredUrl } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import {
   LIVE_REIT_DATA,
@@ -27,6 +27,7 @@ export default function Index() {
   const [syncFailed, setSyncFailed] = useState(false);
   const [syncErrors, setSyncErrors] = useState<SyncError[]>([]);
   const [sourceStatus, setSourceStatus] = useState<Record<string, 'ok' | 'error'>>({});
+  const [discoveredUrls, setDiscoveredUrls] = useState<Record<string, DiscoveredUrl>>(getStoredDiscoveredUrls);
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
@@ -89,6 +90,7 @@ export default function Index() {
       const result = await performSmartSync();
 
       setSourceStatus(result.sourceStatus);
+      setDiscoveredUrls(result.discoveredUrls);
 
       if (result.failed) {
         setSyncFailed(true);
@@ -116,6 +118,14 @@ export default function Index() {
         } else if (result.errors.length === 0) {
           toast.success('Sync Complete', {
             description: `Data is current as of Mar 21, 2026. ${result.checkedCount} sources verified.`,
+          });
+        }
+
+        // Notify about newly discovered presentation URLs
+        if (result.newDiscoveries.length > 0) {
+          const names = result.newDiscoveries.map(id => result.discoveredUrls[id]?.label || id);
+          toast.info('New quarterly report discovered and parsed.', {
+            description: `Updated: ${names.join(', ')}`,
           });
         }
 
@@ -164,7 +174,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} />
+        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} />
 
         <TerminologyCard />
 
