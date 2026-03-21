@@ -97,7 +97,7 @@ const rawData = [
     'https://www.brookfieldindiareit.in/investors'),
   buildREITData('nexus', 'Nexus Select Trust', 'NXST', 'Retail',
     154.68, 148, 100, '2023-05-01', 6.05, 97, 5.5, 18, 3.1,
-    'https://www.nexusselecttrust.com/investor-relations'),
+    'https://www.nexusselecttrust.com/investor-relation'),
 ];
 
 // Override with live 1Y growth data
