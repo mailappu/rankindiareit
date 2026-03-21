@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
@@ -23,11 +23,36 @@ export default function Index() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [reitData] = useState(LIVE_REIT_DATA);
   const [provenanceBadge, setProvenanceBadge] = useState<string | null>(null);
+  const [gsecSource, setGsecSource] = useState<'fallback' | 'live'>('fallback');
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
     [reitData, gsecYield, weights]
   );
+
+  // Try to fetch live G-Sec yield on mount
+  useEffect(() => {
+    const fetchGsec = async () => {
+      try {
+        const { performSmartSync: _ } = await import('@/lib/sync-engine');
+        // Quick background check — don't block UI
+        const result = await performSmartSync();
+        if (result.gsecYield && result.gsecYield !== gsecYield) {
+          setGsecYield(result.gsecYield);
+          setGsecSource('live');
+          toast.info(`G-Sec yield updated to ${result.gsecYield}%`, {
+            description: 'Live benchmark data fetched. All scores recalculated.',
+          });
+        }
+        setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+        setProvenanceBadge(getProvenanceBadge());
+      } catch {
+        // Silently fallback to hardcoded value
+        setGsecSource('fallback');
+      }
+    };
+    fetchGsec();
+  }, []);
 
   const handleSync = useCallback(async () => {
     setIsSyncing(true);
@@ -36,34 +61,50 @@ export default function Index() {
       const result = await performSmartSync();
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
+      // Update G-Sec if new value fetched
+      if (result.gsecYield && result.gsecYield !== gsecYield) {
+        setGsecYield(result.gsecYield);
+        setGsecSource('live');
+        toast.info(`G-Sec benchmark updated: ${result.gsecYield}%`, {
+          description: 'Dividend scores recalculated with live rate.',
+        });
+      }
+
       if (result.changed) {
         toast.success('New data detected', {
-          description: `Changes found in: ${result.changedSources.join(', ')}. Re-parsing required.`,
+          description: `Changes found in: ${result.changedSources.join(', ')}. Data refresh needed.`,
         });
       } else {
         toast.info(
           `No material change detected in investor reports.`,
           {
-            description: `Data is current as of ${DATA_VERIFIED_DATE}. ${result.checkedCount} sources checked. Tokens saved.`,
+            description: `Data is current as of ${DATA_VERIFIED_DATE}. ${result.checkedCount} sources checked via proxy. Tokens saved.`,
           }
         );
       }
 
+      if (result.errors.length > 0) {
+        toast.warning(`${result.errors.length} source(s) unreachable`, {
+          description: result.errors.join('; '),
+        });
+      }
+
       setLastSynced(syncTime);
       setProvenanceBadge(getProvenanceBadge());
-    } catch {
+    } catch (err) {
       toast.error('Sync failed', {
-        description: 'Could not reach investor relations servers. Try again later.',
+        description: err instanceof Error ? err.message : 'Could not reach proxy. Try again later.',
       });
     } finally {
       setIsSyncing(false);
     }
-  }, []);
+  }, [gsecYield]);
 
   return (
     <div className="min-h-screen flex flex-col">
       <DashboardHeader
         gsecYield={gsecYield}
+        gsecSource={gsecSource}
         lastSynced={lastSynced}
         isSyncing={isSyncing}
         onSync={handleSync}
