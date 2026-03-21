@@ -3,15 +3,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// IR pages to scrape for PDF discovery
 const IR_PAGES = [
   {
     reitId: 'embassy',
     label: 'Embassy Office Parks',
     irUrl: 'https://www.embassyofficeparks.com/investors',
-    // Patterns to match in link text or href for investor/earnings presentations
-    patterns: [/investor\s*presentation/i, /earnings\s*presentation/i, /quarterly.*presentation/i],
-    // Fallback direct PDF if discovery fails
+    patterns: [/investor\s*presentation/i, /earnings\s*presentation/i],
     fallbackPdf: 'https://eopwebsvr.blob.core.windows.net/media/filer_public/4f/0c/4f0c413c-e92b-4a7c-9cc3-aff0d5969332/earnings_presentation.pdf',
     fallbackLabel: 'Embassy Q3 FY26 (Cached)',
   },
@@ -19,17 +16,17 @@ const IR_PAGES = [
     reitId: 'mindspace',
     label: 'Mindspace Business Parks',
     irUrl: 'https://www.mindspacereit.com/investor-relations',
-    patterns: [/investor\s*presentation/i, /quarterly.*presentation/i, /earnings.*presentation/i],
-    fallbackPdf: 'https://www.mindspacereit.com/wp-content/uploads/2025/11/Investor-Presentation.pdf',
-    fallbackLabel: 'Mindspace Investor Presentation (Cached)',
+    patterns: [/investor\s*presentation/i, /earnings.*presentation/i],
+    fallbackPdf: 'https://www.mindspacereit.com/wp-content/uploads/2026/01/Investor-Presentation_Q3-FY26-1.pdf',
+    fallbackLabel: 'Mindspace Q3 FY26 (Cached)',
   },
   {
     reitId: 'brookfield',
     label: 'Brookfield India REIT',
     irUrl: 'https://www.brookfieldindiareit.in/investors/reports-and-filings',
-    patterns: [/investor\s*presentation/i, /earnings\s*presentation/i, /quarterly.*presentation/i],
-    fallbackPdf: 'https://www.brookfieldindiareit.in/investors/reports-and-filings',
-    fallbackLabel: 'Brookfield IR Page (Cached)',
+    patterns: [/investor\s*presentation/i, /earnings\s*presentation/i],
+    fallbackPdf: 'https://media.brookfieldindiareit.in/Brookfield_REIT_Earnings_Jan30_2026_f4421e7b0a.pdf',
+    fallbackLabel: 'Brookfield Q3 FY26 (Cached)',
   },
   {
     reitId: 'nexus',
@@ -37,20 +34,34 @@ const IR_PAGES = [
     irUrl: 'https://www.nexusselecttrust.com/results-publications',
     patterns: [/investor\s*presentation/i, /earnings\s*presentation/i, /nexus.*select.*trust/i],
     fallbackPdf: 'https://www.nexusselecttrust.com/resources/assets/pdf/Nexus-Select-Trust-Dec-25-vf.pdf',
-    fallbackLabel: 'Nexus Dec-25 (Cached)',
+    fallbackLabel: 'Nexus Q3 FY26 (Cached)',
   },
+];
+
+// Exclusion patterns - skip these PDFs even if they match the main patterns
+const EXCLUSION_PATTERNS = [
+  /board\s*outcome/i,
+  /board\s*meeting/i,
+  /draft/i,
+  /standalone\s*financial/i,
+  /consolidated\s*financial/i,
+  /annual\s*report/i,
+  /code\s*of\s*conduct/i,
+  /compliance\s*certificate/i,
+  /corporate\s*governance/i,
+  /scrutinizer/i,
+  /postal\s*ballot/i,
+  /voting\s*result/i,
+  /agm|annual\s*general/i,
 ];
 
 // Quarter/date keywords sorted by recency (FY26 = Apr 2025 – Mar 2026)
 const QUARTER_RECENCY = [
-  // FY27
   /fy\s*2027|fy27|2027-28/i,
-  // FY26 quarters (most recent first)
   /q4\s*fy\s*26|q4\s*fy26|mar.*26|march.*2026|fy26.*annual/i,
-  /q3\s*fy\s*26|q3\s*fy26|dec.*25|december.*2025/i,
+  /q3\s*fy\s*26|q3\s*fy26|dec.*25|december.*2025|jan.*2026|january.*2026/i,
   /q2\s*fy\s*26|q2\s*fy26|sep.*25|september.*2025/i,
   /q1\s*fy\s*26|q1\s*fy26|jun.*25|june.*2025/i,
-  // FY25
   /fy\s*2025|fy25|2024-25/i,
 ];
 
@@ -64,9 +75,6 @@ interface DiscoveredPDF {
   error: string | null;
 }
 
-/**
- * Scrape an IR page and find the best matching investor presentation PDF link.
- */
 async function discoverPdf(source: typeof IR_PAGES[number]): Promise<DiscoveredPDF> {
   try {
     const resp = await fetch(source.irUrl, {
@@ -75,28 +83,29 @@ async function discoverPdf(source: typeof IR_PAGES[number]): Promise<DiscoveredP
     });
 
     if (!resp.ok) {
-      console.warn(`IR page returned ${resp.status} for ${source.reitId}`);
       return fallback(source, `IR page returned HTTP ${resp.status}`);
     }
 
     const html = await resp.text();
 
-    // Extract all <a> tags with href ending in .pdf
     const linkRegex = /<a\s[^>]*href\s*=\s*["']([^"']*\.pdf[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
     const candidates: { href: string; text: string; recencyRank: number }[] = [];
 
     let match: RegExpExecArray | null;
     while ((match = linkRegex.exec(html)) !== null) {
       const href = match[1];
-      const linkText = match[2].replace(/<[^>]*>/g, '').trim(); // strip inner HTML tags
+      const linkText = match[2].replace(/<[^>]*>/g, '').trim();
       const combined = `${linkText} ${href}`;
+
+      // Skip excluded content
+      if (EXCLUSION_PATTERNS.some(p => p.test(combined))) continue;
 
       // Check if this link matches any of our patterns
       const matchesPattern = source.patterns.some(p => p.test(combined));
       if (!matchesPattern) continue;
 
       // Score by quarter recency
-      let recencyRank = QUARTER_RECENCY.length + 1; // default: oldest
+      let recencyRank = QUARTER_RECENCY.length + 1;
       for (let i = 0; i < QUARTER_RECENCY.length; i++) {
         if (QUARTER_RECENCY[i].test(combined)) {
           recencyRank = i;
@@ -118,17 +127,14 @@ async function discoverPdf(source: typeof IR_PAGES[number]): Promise<DiscoveredP
     }
 
     if (candidates.length === 0) {
-      console.warn(`No PDF candidates found on IR page for ${source.reitId}`);
       return fallback(source, 'No matching presentation PDF found on IR page');
     }
 
-    // Sort by recency (lower rank = more recent)
     candidates.sort((a, b) => a.recencyRank - b.recencyRank);
     const best = candidates[0];
 
     console.log(`Discovered PDF for ${source.reitId}: ${best.href} (text: "${best.text}")`);
 
-    // HEAD check the discovered PDF
     const headResult = await headCheck(best.href);
 
     return {
@@ -185,10 +191,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Discover PDFs in parallel
     const discoveryPromises = IR_PAGES.map(source => discoverPdf(source));
 
-    // Also fetch G-Sec yield in parallel
     const gsecPromise = (async (): Promise<number | null> => {
       try {
         const gsecResp = await fetch(
@@ -221,7 +225,6 @@ Deno.serve(async (req) => {
       gsecPromise,
     ]);
 
-    // Map to the metadata format the frontend expects, plus the new pdfUrl field
     const metadata = discovered.map(d => ({
       reitId: d.reitId,
       label: d.label,
