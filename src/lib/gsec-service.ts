@@ -53,8 +53,8 @@ export async function getGSecYield(): Promise<{
 }> {
   const cache = getCache();
 
-  // Tier 1: Fresh cache — skip network entirely
-  if (cache && isCacheFresh(cache) && cache.source === 'live') {
+  // Tier 1: Fresh cache — skip network entirely, but only if value is within valid range
+  if (cache && isCacheFresh(cache) && cache.source === 'live' && cache.yield >= VALID_YIELD_MIN && cache.yield <= VALID_YIELD_MAX) {
     return {
       yield: cache.yield,
       status: 'live',
