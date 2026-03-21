@@ -11,18 +11,18 @@ interface REITTableProps {
 }
 
 const COLUMNS: { key: SortKey; label: string; format?: (v: any, r: ScoredREIT) => string; heatmap?: string }[] = [
+  { key: 'name', label: 'REIT' },
   { key: 'rank', label: '#' },
   { key: 'finalScore', label: 'Score', format: v => v.toFixed(1), heatmap: 'finalScore' },
-  { key: 'name', label: 'REIT' },
-  { key: 'sector', label: 'Sector' },
   { key: 'cmp', label: 'CMP (₹)', format: v => `₹${v}` },
   { key: 'nav', label: 'NAV (₹)', format: v => `₹${v}` },
-  { key: 'valueScore', label: 'Value%', format: v => `${v.toFixed(1)}%`, heatmap: 'valueScore' },
   { key: 'divYield', label: 'Div Yield', format: v => `${v.toFixed(1)}%`, heatmap: 'divYield' },
-  { key: 'divScore', label: 'DivScore', format: v => v.toFixed(1) },
   { key: 'growth1Y', label: '1Y CAGR', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
   { key: 'growth3Y', label: '3Y CAGR', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
   { key: 'growth5Y', label: '5Y CAGR', format: (v) => v !== null ? `${v.toFixed(1)}%` : 'N/A' },
+  { key: 'sector', label: 'Sector' },
+  { key: 'valueScore', label: 'Value%', format: v => `${v.toFixed(1)}%`, heatmap: 'valueScore' },
+  { key: 'divScore', label: 'DivScore', format: v => v.toFixed(1) },
   { key: 'occupancy', label: 'Occup.', format: v => `${v}%`, heatmap: 'occupancy' },
   { key: 'wale', label: 'WALE', format: v => `${v}Y` },
   { key: 'ltv', label: 'LTV', format: v => `${v}%`, heatmap: 'ltv' },
