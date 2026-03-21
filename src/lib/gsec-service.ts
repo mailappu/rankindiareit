@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const GSEC_CACHE_KEY = 'gsec_yield_cache';
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
-const FALLBACK_YIELD = 6.74;
+const FALLBACK_YIELD = 6.77;
 const VALID_YIELD_MIN = 5.5;
 const VALID_YIELD_MAX = 7.5;
 const SIGNIFICANT_CHANGE_THRESHOLD = 0.02; // percentage points
