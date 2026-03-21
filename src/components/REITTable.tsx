@@ -10,6 +10,7 @@ type SortKey = keyof ScoredREIT;
 interface REITTableProps {
   data: ScoredREIT[];
   gsecYield: number;
+  sourceStatus?: Record<string, 'ok' | 'error'>;
 }
 
 const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatmap?: string }[] = [
