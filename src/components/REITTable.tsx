@@ -14,6 +14,7 @@ interface REITTableProps {
 
 const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatmap?: string }[] = [
   { key: 'name', label: 'REIT' },
+  { key: 'sector', label: 'Sector' },
   { key: 'rank', label: '#' },
   { key: 'finalScore', label: 'Score', format: v => v.toFixed(1), heatmap: 'finalScore' },
   { key: 'cmp', label: 'CMP (₹)', format: v => `₹${v.toFixed(2)}` },
@@ -29,7 +30,6 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatm
   { key: 'occupancy', label: 'Occup.', format: v => `${v}%`, heatmap: 'occupancy' },
   { key: 'wale', label: 'WALE', format: v => `${v}Y` },
   { key: 'ltv', label: 'LTV', format: v => `${v}%`, heatmap: 'ltv' },
-  { key: 'sector', label: 'Sector' },
   { key: 'pipeline', label: 'Pipeline', format: v => `${v}M sqft` },
 ];
 
