@@ -107,7 +107,7 @@ export default function Index() {
     <div className="min-h-screen flex flex-col">
       <DashboardHeader
         gsecYield={gsecYield}
-        gsecSource={gsecSource}
+        gsecStatus={gsecStatus}
         lastSynced={lastSynced}
         isSyncing={isSyncing}
         onSync={handleSync}
