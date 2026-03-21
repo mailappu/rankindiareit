@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
+import { TerminologyCard } from '@/components/TerminologyCard';
 
 import { calculateScores } from '@/lib/reit-scoring';
 import {
@@ -56,6 +57,8 @@ export default function Index() {
         />
 
         <REITTable data={scoredData} gsecYield={gsecYield} />
+
+        <TerminologyCard />
       </main>
     </div>
   );
