@@ -6,11 +6,11 @@ export interface REITData {
   cmp: number;
   nav: number;
   listingPrice: number;
-  listingDate: string; // ISO date
+  listingDate: string;
   growth1Y: number;
   growth3Y: number | null;
   growth5Y: number | null;
-  sinceListing: number; // CAGR since listing
+  sinceListing: number;
   divYield: number;
   occupancy: number;
   wale: number;
@@ -18,6 +18,7 @@ export interface REITData {
   pipeline: number;
   lastUpdated: string;
   irUrl: string;
+  latestPdfUrl: string | null;
 }
 
 export interface ScoreBreakdown {
