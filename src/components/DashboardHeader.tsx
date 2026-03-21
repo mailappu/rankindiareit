@@ -1,4 +1,4 @@
-import { Activity, RefreshCw, ShieldCheck, AlertTriangle, FileWarning } from 'lucide-react';
+import { Activity, RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import type { GSecStatus } from '@/lib/gsec-service';
@@ -51,7 +51,8 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
                     <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
                   </span>
                   <span className="text-muted-foreground">BENCHMARK</span>
-                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(3)}%</span>
+                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
+                  <span title="Verified Mar 21, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
                   <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
                     gsecStatus === 'live'
                       ? 'bg-terminal-green/15 text-terminal-green'
