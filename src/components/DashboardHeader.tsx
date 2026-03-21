@@ -61,11 +61,13 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, isSyncing, 
                 <div className="space-y-3 text-xs font-mono text-foreground">
                   <h2 className="text-sm font-semibold text-foreground">Scoring Methodology</h2>
                   <div className="bg-terminal-amber/10 border border-terminal-amber/20 rounded p-3 mb-3">
-                    <div className="text-terminal-amber font-semibold text-[11px]">Current Benchmark: {gsecYield.toFixed(2)}% G-Sec 10Y</div>
+                    <div className="text-terminal-amber font-semibold text-[11px]">Current Benchmark: {gsecYield.toFixed(3)}% G-Sec 10Y</div>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      {gsecSource === 'live'
-                        ? 'Fetched live from public bond data. All DivScores recalculate automatically when this changes.'
-                        : 'Using verified fallback rate (Mar 21, 2026). Click Smart Sync to fetch live rate.'}
+                      {gsecStatus === 'live'
+                        ? 'Fetched live from public bond data (cached for 4 hours). All DivScores recalculate automatically when this changes by ≥0.02%.'
+                        : gsecStatus === 'cached'
+                          ? 'Using cached rate (over 4 hours old). Click Smart Sync to refresh.'
+                          : 'Using verified fallback rate (Mar 21, 2026). Click Smart Sync to fetch live rate.'}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
