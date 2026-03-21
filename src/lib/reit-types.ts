@@ -65,14 +65,11 @@ function buildREITData(
   id: string, name: string, ticker: string, sector: 'Office' | 'Retail',
   cmp: number, nav: number, listingPrice: number, listingDate: string,
   divYield: number, occupancy: number, wale: number, ltv: number,
-  pipeline: number, irUrl: string
+  pipeline: number, irUrl: string, latestPdfUrl: string | null
 ): REITData {
   const age = yearsSince(listingDate, CURRENT_DATE);
   const sinceListing = calcCAGR(listingPrice, cmp, age);
-
-  // Calculate CAGRs based on age
-  // We use listing price as proxy for older prices when age < period
-  const growth1Y = 0; // Will be set from live data
+  const growth1Y = 0;
   const growth3Y = age >= 3 ? calcCAGR(listingPrice, cmp, Math.min(age, 3)) : null;
   const growth5Y = age >= 5 ? calcCAGR(listingPrice, cmp, Math.min(age, 5)) : null;
 
@@ -82,6 +79,7 @@ function buildREITData(
     divYield, occupancy, wale, ltv, pipeline,
     lastUpdated: CURRENT_DATE,
     irUrl,
+    latestPdfUrl,
   };
 }
 
