@@ -52,7 +52,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
                   </span>
                   <span className="text-muted-foreground">BENCHMARK</span>
                   <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
-                  <BadgeCheck className="h-3.5 w-3.5 text-terminal-green" title="Verified Mar 21, 2026" />
+                  <span title="Verified Mar 21, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
                   <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
                     gsecStatus === 'live'
                       ? 'bg-terminal-green/15 text-terminal-green'
