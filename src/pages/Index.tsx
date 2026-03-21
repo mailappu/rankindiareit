@@ -52,7 +52,7 @@ export default function Index() {
         setProvenanceBadge(getProvenanceBadge());
       } catch {
         setGsecStatus('fallback');
-        toast.warning('Live G-Sec unavailable. Defaulting to 6.737% (Mar 21 benchmark).', {
+        toast.warning('Live G-Sec unavailable. Defaulting to 6.77% (Mar 21 benchmark).', {
           description: 'Dividend Score calculation uses fallback rate. Ranking is unaffected.',
         });
       }
