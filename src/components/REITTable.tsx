@@ -1,25 +1,27 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, Info } from 'lucide-react';
 import { REITData, ScoreBreakdown } from '@/lib/reit-types';
 import { getHeatmapClass } from '@/lib/reit-scoring';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 type ScoredREIT = REITData & ScoreBreakdown;
 type SortKey = keyof ScoredREIT;
 
 interface REITTableProps {
   data: ScoredREIT[];
+  gsecYield: number;
 }
 
-const COLUMNS: { key: SortKey; label: string; format?: (v: any, r: ScoredREIT) => string; heatmap?: string }[] = [
+const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatmap?: string }[] = [
   { key: 'name', label: 'REIT' },
   { key: 'rank', label: '#' },
   { key: 'finalScore', label: 'Score', format: v => v.toFixed(1), heatmap: 'finalScore' },
-  { key: 'cmp', label: 'CMP (₹)', format: v => `₹${v}` },
+  { key: 'cmp', label: 'CMP (₹)', format: v => `₹${v.toFixed(2)}` },
   { key: 'nav', label: 'NAV (₹)', format: v => `₹${v}` },
-  { key: 'divYield', label: 'Div Yield', format: v => `${v.toFixed(1)}%`, heatmap: 'divYield' },
+  { key: 'divYield', label: 'Div Yield', format: v => `${v.toFixed(2)}%`, heatmap: 'divYield' },
   { key: 'growth1Y', label: '1Y CAGR', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
-  { key: 'growth3Y', label: '3Y CAGR', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
-  { key: 'growth5Y', label: '5Y CAGR', format: (v) => v !== null ? `${v.toFixed(1)}%` : 'N/A' },
+  { key: 'growth3Y', label: '3Y CAGR', format: v => v !== null ? `${v.toFixed(1)}%` : '—' },
+  { key: 'growth5Y', label: '5Y CAGR', format: v => v !== null ? `${v.toFixed(1)}%` : '—' },
   { key: 'sector', label: 'Sector' },
   { key: 'valueScore', label: 'Value%', format: v => `${v.toFixed(1)}%`, heatmap: 'valueScore' },
   { key: 'divScore', label: 'DivScore', format: v => v.toFixed(1) },
@@ -30,7 +32,54 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any, r: ScoredREIT) =
   { key: 'pipeline', label: 'Pipeline', format: v => `${v}M sqft` },
 ];
 
-export function REITTable({ data }: REITTableProps) {
+function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: number }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="ml-1 text-muted-foreground hover:text-terminal-amber transition-colors">
+          <Info className="h-3 w-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 bg-card border-border text-xs font-mono p-3 space-y-2" side="left">
+        <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-2">
+          {reit.ticker} — Score Breakdown
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">DivScore</span>
+            <span className="text-terminal-green">
+              ({reit.divYield}% / {gsecYield}%) × 100 = <span className="font-semibold">{reit.divScore}</span>
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">ValueScore</span>
+            <span className={reit.valueScore >= 0 ? 'text-terminal-green' : 'text-terminal-red'}>
+              (({reit.nav} - {reit.cmp}) / {reit.nav}) × 100 = <span className="font-semibold">{reit.valueScore}%</span>
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">SafetyScore</span>
+            <span className="text-terminal-blue">
+              ({reit.occupancy} + {100 - reit.ltv} + {(reit.wale * 10).toFixed(0)}) / 3 = <span className="font-semibold">{reit.safetyScore}</span>
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">GrowthScore</span>
+            <span className="text-terminal-cyan">
+              <span className="font-semibold">{reit.growthScore}</span>
+            </span>
+          </div>
+          <div className="border-t border-border pt-1.5 flex justify-between font-semibold">
+            <span className="text-foreground">Final Score</span>
+            <span className="text-terminal-amber">{reit.finalScore}</span>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function REITTable({ data, gsecYield }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -98,6 +147,17 @@ export function REITTable({ data }: REITTableProps) {
                     );
                   }
 
+                  if (col.key === 'finalScore') {
+                    return (
+                      <td key={col.key} className={`px-3 py-2.5 font-bold text-sm text-foreground ${heatClass}`}>
+                        <div className="flex items-center">
+                          {reit.finalScore.toFixed(1)}
+                          <ScoreInfoPopover reit={reit} gsecYield={gsecYield} />
+                        </div>
+                      </td>
+                    );
+                  }
+
                   if (col.key === 'name') {
                     return (
                       <td key={col.key} className="px-3 py-2.5">
@@ -127,10 +187,8 @@ export function REITTable({ data }: REITTableProps) {
                   }
 
                   return (
-                    <td key={col.key} className={`px-3 py-2.5 ${heatClass} ${
-                      col.key === 'finalScore' ? 'font-bold text-sm text-foreground' : 'text-foreground'
-                    } ${val === null ? 'text-muted-foreground italic' : ''}`}>
-                      {col.format ? col.format(val, reit) : String(val)}
+                    <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground ${val === null ? 'text-muted-foreground italic' : ''}`}>
+                      {col.format ? col.format(val) : String(val)}
                     </td>
                   );
                 })}

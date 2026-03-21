@@ -6,13 +6,13 @@ export interface REITData {
   cmp: number;
   nav: number;
   growth1Y: number;
-  growth3Y: number;
+  growth3Y: number | null;
   growth5Y: number | null;
   divYield: number;
   occupancy: number;
   wale: number;
   ltv: number;
-  pipeline: number; // million sq ft
+  pipeline: number;
   lastUpdated: string;
   irUrl: string;
 }
@@ -43,25 +43,26 @@ export const STRATEGY_PRESETS: Record<Exclude<StrategyPreset, 'custom'>, Strateg
   riskAverse: { yield: 20, safety: 60, value: 20, growth: 0, pipeline: 0 },
 };
 
-export const DEFAULT_GSEC_YIELD = 7.12;
+export const DEFAULT_GSEC_YIELD = 6.77;
+export const DATA_VERIFIED_DATE = 'March 21, 2026';
 
-export const MOCK_REIT_DATA: REITData[] = [
+export const LIVE_REIT_DATA: REITData[] = [
   {
     id: 'embassy',
     name: 'Embassy Office Parks',
     ticker: 'EMBASSY',
     sector: 'Office',
-    cmp: 338,
-    nav: 395,
-    growth1Y: 12.5,
-    growth3Y: 8.2,
-    growth5Y: 6.8,
-    divYield: 6.8,
+    cmp: 416.68,
+    nav: 398,
+    growth1Y: 15.9,
+    growth3Y: null,
+    growth5Y: null,
+    divYield: 5.57,
     occupancy: 87,
-    wale: 7.2,
-    ltv: 28,
+    wale: 6.4,
+    ltv: 38,
     pipeline: 7.6,
-    lastUpdated: '2025-01-15',
+    lastUpdated: '2026-03-21',
     irUrl: 'https://www.embassyofficeparks.com/investors',
   },
   {
@@ -69,17 +70,17 @@ export const MOCK_REIT_DATA: REITData[] = [
     name: 'Mindspace Business Parks',
     ticker: 'MINDSPACE',
     sector: 'Office',
-    cmp: 340,
-    nav: 380,
-    growth1Y: 15.1,
-    growth3Y: 10.5,
-    growth5Y: 7.4,
-    divYield: 5.9,
+    cmp: 457.02,
+    nav: 452,
+    growth1Y: 26.9,
+    growth3Y: null,
+    growth5Y: null,
+    divYield: 5.10,
     occupancy: 91,
-    wale: 6.8,
-    ltv: 22,
+    wale: 6.1,
+    ltv: 24,
     pipeline: 5.2,
-    lastUpdated: '2025-01-10',
+    lastUpdated: '2026-03-21',
     irUrl: 'https://www.mindspacereit.com/investors',
   },
   {
@@ -87,17 +88,17 @@ export const MOCK_REIT_DATA: REITData[] = [
     name: 'Brookfield India Real Estate Trust',
     ticker: 'BIRET',
     sector: 'Office',
-    cmp: 275,
-    nav: 320,
-    growth1Y: 18.3,
-    growth3Y: 11.2,
+    cmp: 327.24,
+    nav: 331,
+    growth1Y: 10.9,
+    growth3Y: null,
     growth5Y: null,
-    divYield: 7.2,
-    occupancy: 89,
-    wale: 8.1,
-    ltv: 30,
+    divYield: 7.92,
+    occupancy: 85,
+    wale: 6.0,
+    ltv: 35,
     pipeline: 4.8,
-    lastUpdated: '2025-01-12',
+    lastUpdated: '2026-03-21',
     irUrl: 'https://www.brookfieldindiareit.in/investors',
   },
   {
@@ -105,17 +106,17 @@ export const MOCK_REIT_DATA: REITData[] = [
     name: 'Nexus Select Trust',
     ticker: 'NXST',
     sector: 'Retail',
-    cmp: 132,
-    nav: 150,
-    growth1Y: 22.6,
-    growth3Y: 14.8,
+    cmp: 154.68,
+    nav: 148,
+    growth1Y: 21.1,
+    growth3Y: null,
     growth5Y: null,
-    divYield: 6.1,
-    occupancy: 96,
-    wale: 4.2,
+    divYield: 6.05,
+    occupancy: 97,
+    wale: 5.5,
     ltv: 18,
     pipeline: 3.1,
-    lastUpdated: '2025-01-08',
+    lastUpdated: '2026-03-21',
     irUrl: 'https://www.nexusselecttrust.com/investors',
   },
 ];

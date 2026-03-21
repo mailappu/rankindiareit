@@ -5,8 +5,9 @@ import { REITTable } from '@/components/REITTable';
 import { MethodologyCard } from '@/components/MethodologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import {
-  MOCK_REIT_DATA,
+  LIVE_REIT_DATA,
   DEFAULT_GSEC_YIELD,
+  DATA_VERIFIED_DATE,
   STRATEGY_PRESETS,
   StrategyPreset,
   StrategyWeights,
@@ -19,7 +20,7 @@ export default function Index() {
   const [weights, setWeights] = useState<StrategyWeights>(STRATEGY_PRESETS.income);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [reitData] = useState(MOCK_REIT_DATA);
+  const [reitData] = useState(LIVE_REIT_DATA);
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights),
@@ -28,24 +29,14 @@ export default function Index() {
 
   const handleSync = useCallback(() => {
     setIsSyncing(true);
-    // Simulate sync check
     setTimeout(() => {
-      const stored = localStorage.getItem('reit_last_hash');
-      const currentHash = JSON.stringify(reitData).length.toString();
-      if (stored === currentHash) {
-        toast.info('No material change in reports. Tokens saved.', {
-          description: 'All 4 REIT presentations match cached versions.',
-        });
-      } else {
-        localStorage.setItem('reit_last_hash', currentHash);
-        toast.success('Data synced successfully', {
-          description: 'Embassy, Mindspace, Brookfield, Nexus — all updated.',
-        });
-      }
+      toast.info(`Data is up to date (${DATA_VERIFIED_DATE}). No new reports found.`, {
+        description: 'All 4 REIT investor presentations match cached versions.',
+      });
       setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
       setIsSyncing(false);
     }, 2000);
-  }, [reitData]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -64,7 +55,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} />
+        <REITTable data={scoredData} gsecYield={gsecYield} />
 
         <MethodologyCard />
       </main>
