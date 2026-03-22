@@ -191,7 +191,7 @@ export default function Index() {
         syncErrors={syncErrors}
       />
 
-      <main className="flex-1 p-6 space-y-4 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 px-3 sm:px-6 py-4 space-y-4 max-w-[1600px] mx-auto w-full">
         <StrategyPanel
           preset={preset}
           weights={weights}
