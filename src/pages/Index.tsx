@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
@@ -42,9 +43,10 @@ export default function Index() {
     [reitData, gsecYield, weights]
   );
 
-  // 3-Tier G-Sec pulse on mount
+  // Auto-fetch live CMP prices and G-Sec on mount
   useEffect(() => {
-    const fetchBenchmark = async () => {
+    const fetchOnMount = async () => {
+      // Fetch G-Sec benchmark
       try {
         const result = await getGSecYield();
         setGsecYield(result.yield);
@@ -55,17 +57,37 @@ export default function Index() {
             description: 'Re-calculating Dividend Scores across all REITs.',
           });
         }
-
-        setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
-        setProvenanceBadge(getProvenanceBadge());
       } catch {
         setGsecStatus('fallback');
-        toast.warning('Live G-Sec unavailable. Defaulting to 6.77% (Mar 21 benchmark).', {
-          description: 'Dividend Score calculation uses fallback rate. Ranking is unaffected.',
-        });
       }
+
+      // Fetch live CMP prices
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch-cmp');
+        if (!error && data?.success && Array.isArray(data.prices)) {
+          const priceMap: Record<string, LivePrice> = {};
+          for (const p of data.prices) {
+            priceMap[p.reitId] = {
+              reitId: p.reitId,
+              cmp: p.cmp,
+              isLive: p.isLive,
+              fetchedAt: p.fetchedAt,
+              error: p.error,
+            };
+          }
+          setLivePrices(priceMap);
+          setReitData(applyLivePrices(LIVE_REIT_DATA, priceMap));
+          // Persist to localStorage
+          localStorage.setItem('reit_cmp_cache', JSON.stringify(priceMap));
+        }
+      } catch (err) {
+        console.warn('Auto CMP fetch failed:', err);
+      }
+
+      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+      setProvenanceBadge(getProvenanceBadge());
     };
-    fetchBenchmark();
+    fetchOnMount();
   }, []);
 
   const handleSync = useCallback(async () => {
