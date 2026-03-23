@@ -1,8 +1,12 @@
-import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3 } from 'lucide-react';
+import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import type { GSecStatus } from '@/lib/gsec-service';
 import type { SyncError } from '@/lib/sync-engine';
+import type { TaxBracket } from '@/lib/reit-types';
+import { TAX_BRACKETS } from '@/lib/reit-types';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface DashboardHeaderProps {
   gsecYield: number;
@@ -13,9 +17,11 @@ interface DashboardHeaderProps {
   onSync: () => void;
   provenanceBadge: string | null;
   syncErrors: SyncError[];
+  taxRate: TaxBracket;
+  onTaxRateChange: (rate: TaxBracket) => void;
 }
 
-export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors, taxRate, onTaxRateChange }: DashboardHeaderProps) {
   const pulseColor = gsecStatus === 'live'
     ? 'bg-terminal-green'
     : gsecStatus === 'cached'
