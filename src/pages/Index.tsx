@@ -256,6 +256,20 @@ export default function Index() {
             </p>
           </div>
         </div>
+
+        <div className="text-center py-3">
+          <span className="text-[10px] font-mono text-muted-foreground">
+            Crafted by{' '}
+            <a
+              href="https://www.linkedin.com/in/pradeep-kumars/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-semibold"
+            >
+              Pradeep
+            </a>
+          </span>
+        </div>
       </main>
     </div>
   );
