@@ -168,6 +168,9 @@ export function applyLivePrices(
       divYield: newDivYield,
       isLiveCMP: lp.isLive,
       cmpCachedAt: lp.fetchedAt,
+      ...(lp.growth1Y !== undefined ? { growth1Y: lp.growth1Y } : {}),
+      ...(lp.growth3Y !== undefined ? { growth3Y: lp.growth3Y } : {}),
+      ...(lp.growth5Y !== undefined ? { growth5Y: lp.growth5Y } : {}),
     };
   });
 }
