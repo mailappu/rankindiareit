@@ -17,6 +17,14 @@ const FALLBACK_CMP: Record<string, number> = {
   nexus: 152.60,
 };
 
+// Fallback CAGR values (verified Mar 21, 2026)
+const FALLBACK_CAGR: Record<string, { growth1Y: number; growth3Y: number | null; growth5Y: number | null }> = {
+  embassy:    { growth1Y: 15.9, growth3Y: 11.6, growth5Y: 8.6 },
+  mindspace:  { growth1Y: 26.9, growth3Y: 17.6, growth5Y: 12.8 },
+  brookfield: { growth1Y: 10.9, growth3Y: 5.3,  growth5Y: null },
+  nexus:      { growth1Y: 21.1, growth3Y: null,  growth5Y: null },
+};
+
 interface PriceResult {
   reitId: string;
   ticker: string;
@@ -25,15 +33,90 @@ interface PriceResult {
   fetchedAt: string;
   error: string | null;
   source: string;
+  growth1Y: number;
+  growth3Y: number | null;
+  growth5Y: number | null;
+  cagrSource: string;
+}
+
+/** Calculate CAGR from two prices over N years */
+function calcCAGR(startPrice: number, endPrice: number, years: number): number {
+  if (startPrice <= 0 || years <= 0) return 0;
+  return (Math.pow(endPrice / startPrice, 1 / years) - 1) * 100;
+}
+
+/**
+ * Fetch historical prices from Yahoo Finance chart API for CAGR calculation.
+ * Returns { price1YAgo, price3YAgo, price5YAgo } or nulls.
+ */
+async function fetchHistoricalPrices(symbol: string): Promise<{
+  price1YAgo: number | null;
+  price3YAgo: number | null;
+  price5YAgo: number | null;
+}> {
+  try {
+    const ticker = `${symbol}.NS`;
+    // Fetch 5 years of monthly data
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1mo&range=5y`;
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!resp.ok) {
+      console.warn(`Yahoo historical returned ${resp.status} for ${symbol}`);
+      return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
+    }
+
+    const data = await resp.json();
+    const result = data?.chart?.result?.[0];
+    if (!result) return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
+
+    const timestamps: number[] = result.timestamp || [];
+    const closes: (number | null)[] = result.indicators?.quote?.[0]?.close || [];
+
+    if (timestamps.length === 0) return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
+
+    const now = Date.now();
+    const oneYearMs = 365.25 * 24 * 60 * 60 * 1000;
+
+    // Find closest price to 1Y, 3Y, 5Y ago
+    function findClosestPrice(targetMs: number): number | null {
+      let bestIdx = -1;
+      let bestDiff = Infinity;
+      for (let i = 0; i < timestamps.length; i++) {
+        const diff = Math.abs(timestamps[i] * 1000 - targetMs);
+        if (diff < bestDiff && closes[i] != null && closes[i]! > 0) {
+          bestDiff = diff;
+          bestIdx = i;
+        }
+      }
+      // Accept if within 45 days of target
+      if (bestIdx >= 0 && bestDiff < 45 * 24 * 60 * 60 * 1000) {
+        return closes[bestIdx]!;
+      }
+      return null;
+    }
+
+    const price1YAgo = findClosestPrice(now - 1 * oneYearMs);
+    const price3YAgo = findClosestPrice(now - 3 * oneYearMs);
+    const price5YAgo = findClosestPrice(now - 5 * oneYearMs);
+
+    console.log(`[Historical] ${symbol}: 1Y ago=₹${price1YAgo}, 3Y ago=₹${price3YAgo}, 5Y ago=₹${price5YAgo}`);
+    return { price1YAgo, price3YAgo, price5YAgo };
+  } catch (err) {
+    console.warn(`Historical price fetch failed for ${symbol}:`, err);
+    return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
+  }
 }
 
 /**
  * Primary source: NSE India API
- * Requires a session cookie obtained by first hitting the main page
  */
 async function fetchFromNSE(symbol: string): Promise<number | null> {
   try {
-    // Step 1: Get session cookies from NSE homepage
     const homeResp = await fetch('https://www.nseindia.com', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -42,12 +125,9 @@ async function fetchFromNSE(symbol: string): Promise<number | null> {
       },
       redirect: 'follow',
     });
-
-    // Extract cookies from response
     const cookies = homeResp.headers.get('set-cookie') || '';
     const cookieStr = cookies.split(',').map(c => c.split(';')[0].trim()).join('; ');
 
-    // Step 2: Fetch quote with session cookies
     const url = `https://www.nseindia.com/api/quote-equity?symbol=${encodeURIComponent(symbol)}`;
     const resp = await fetch(url, {
       headers: {
@@ -58,17 +138,10 @@ async function fetchFromNSE(symbol: string): Promise<number | null> {
         'Cookie': cookieStr,
       },
     });
-
-    if (!resp.ok) {
-      console.warn(`NSE API returned ${resp.status} for ${symbol}`);
-      return null;
-    }
-
+    if (!resp.ok) return null;
     const data = await resp.json();
     const price = data?.priceInfo?.lastPrice;
-    if (price && typeof price === 'number' && price > 0 && price < 10000) {
-      return price;
-    }
+    if (price && typeof price === 'number' && price > 0 && price < 10000) return price;
     return null;
   } catch (err) {
     console.warn(`NSE India failed for ${symbol}:`, err);
@@ -77,8 +150,7 @@ async function fetchFromNSE(symbol: string): Promise<number | null> {
 }
 
 /**
- * Secondary source: Yahoo Finance v8 chart API
- * Includes staleness check — rejects prices with regularMarketTime older than 7 days
+ * Secondary source: Yahoo Finance v8 chart API (current price)
  */
 async function fetchFromYahoo(symbol: string): Promise<number | null> {
   try {
@@ -90,25 +162,19 @@ async function fetchFromYahoo(symbol: string): Promise<number | null> {
         'Accept': 'application/json',
       },
     });
-    if (!resp.ok) {
-      await resp.text();
-      return null;
-    }
+    if (!resp.ok) return null;
     const data = await resp.json();
     const meta = data?.chart?.result?.[0]?.meta;
     const price = meta?.regularMarketPrice;
 
-    // Staleness check: reject if regularMarketTime is more than 7 days old
     if (meta?.regularMarketTime) {
-      const marketTime = meta.regularMarketTime * 1000; // Convert to ms
-      const now = Date.now();
+      const marketTime = meta.regularMarketTime * 1000;
       const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-      if (now - marketTime > sevenDaysMs) {
-        console.warn(`Yahoo data for ${symbol} is stale (market time: ${new Date(marketTime).toISOString()}), skipping`);
+      if (Date.now() - marketTime > sevenDaysMs) {
+        console.warn(`Yahoo data for ${symbol} is stale, skipping`);
         return null;
       }
     }
-
     if (price && price > 0 && price < 10000) return price;
     return null;
   } catch (err) {
@@ -127,10 +193,7 @@ async function fetchFromGoogleFinance(symbol: string): Promise<number | null> {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
       redirect: 'follow',
     });
-    if (!resp.ok) {
-      await resp.text();
-      return null;
-    }
+    if (!resp.ok) return null;
     const html = await resp.text();
     const patterns = [
       /data-last-price="(\d+\.?\d*)"/,
@@ -153,35 +216,67 @@ async function fetchFromGoogleFinance(symbol: string): Promise<number | null> {
 
 async function fetchPrice(reitId: string, symbol: string): Promise<PriceResult> {
   const now = new Date().toISOString();
+  const fallbackCagr = FALLBACK_CAGR[reitId] || { growth1Y: 0, growth3Y: null, growth5Y: null };
 
+  // Fetch current price from multiple sources
   const sources = [
     { name: 'NSE', fn: () => fetchFromNSE(symbol) },
     { name: 'Yahoo', fn: () => fetchFromYahoo(symbol) },
     { name: 'Google', fn: () => fetchFromGoogleFinance(symbol) },
   ];
 
+  let currentPrice: number | null = null;
+  let priceSource = 'fallback';
+
   for (const source of sources) {
     try {
       const price = await source.fn();
       if (price !== null) {
         console.log(`✓ ${reitId} price from ${source.name}: ₹${price}`);
-        return { reitId, ticker: `${symbol}.NS`, cmp: price, isLive: true, fetchedAt: now, error: null, source: source.name };
+        currentPrice = price;
+        priceSource = source.name;
+        break;
       }
     } catch (err) {
       console.warn(`${source.name} failed for ${reitId}:`, err);
     }
   }
 
-  // Fallback
-  console.log(`✗ ${reitId}: all sources failed, using fallback ₹${FALLBACK_CMP[reitId]}`);
+  const cmp = currentPrice ?? FALLBACK_CMP[reitId] ?? 0;
+  const isLive = currentPrice !== null;
+
+  // Fetch historical prices for CAGR calculation
+  const historical = await fetchHistoricalPrices(symbol);
+  let growth1Y = fallbackCagr.growth1Y;
+  let growth3Y = fallbackCagr.growth3Y;
+  let growth5Y = fallbackCagr.growth5Y;
+  let cagrSource = 'fallback';
+
+  if (historical.price1YAgo) {
+    growth1Y = Math.round(calcCAGR(historical.price1YAgo, cmp, 1) * 10) / 10;
+    cagrSource = 'yahoo-historical';
+  }
+  if (historical.price3YAgo) {
+    growth3Y = Math.round(calcCAGR(historical.price3YAgo, cmp, 3) * 10) / 10;
+  }
+  if (historical.price5YAgo) {
+    growth5Y = Math.round(calcCAGR(historical.price5YAgo, cmp, 5) * 10) / 10;
+  }
+
+  console.log(`[CAGR] ${reitId}: 1Y=${growth1Y}%, 3Y=${growth3Y}%, 5Y=${growth5Y}% (source: ${cagrSource})`);
+
   return {
     reitId,
     ticker: `${symbol}.NS`,
-    cmp: FALLBACK_CMP[reitId] ?? 0,
-    isLive: false,
+    cmp,
+    isLive,
     fetchedAt: now,
-    error: 'Live price unavailable. Using latest verified closing price.',
-    source: 'fallback',
+    error: isLive ? null : 'Live price unavailable. Using latest verified closing price.',
+    source: priceSource,
+    growth1Y,
+    growth3Y,
+    growth5Y,
+    cagrSource,
   };
 }
 
