@@ -65,10 +65,10 @@ export const TTM_DISTRIBUTIONS: Record<string, number> = {
 
 // Fallback CMP prices (verified closing prices Mar 21 2026)
 export const FALLBACK_CMP: Record<string, number> = {
-  embassy: 416.68,
-  mindspace: 457.02,
-  brookfield: 327.24,
-  nexus: 154.68,
+  embassy: 417.00,
+  mindspace: 449.59,
+  brookfield: 319.79,
+  nexus: 152.60,
 };
 
 // NSE ticker symbols for live price fetching
@@ -122,19 +122,19 @@ function buildREITData(
 
 const rawData = [
   buildREITData('embassy', 'Embassy Office Parks', 'EMBASSY', 'EMBASSY.NS', 'Office',
-    416.68, 398, 300, '2019-04-01', 24.46, 87, 6.4, 38, 7.6,
+    417.00, 398, 300, '2019-04-01', 24.46, 87, 6.4, 38, 7.6,
     'https://www.embassyofficeparks.com/investors/',
     'https://eopwebsvr.blob.core.windows.net/media/filer_public/4f/0c/4f0c413c-e92b-4a7c-9cc3-aff0d5969332/earnings_presentation.pdf'),
   buildREITData('mindspace', 'Mindspace Business Parks', 'MINDSPACE', 'MINDSPACE.NS', 'Office',
-    457.02, 452, 275, '2020-08-01', 23.89, 91, 6.1, 24, 5.2,
+    449.59, 452, 275, '2020-08-01', 23.89, 91, 6.1, 24, 5.2,
     'https://www.mindspacereit.com/investor-relations',
     'https://www.mindspacereit.com/wp-content/uploads/2026/01/Investor-Presentation_Q3-FY26-1.pdf'),
   buildREITData('brookfield', 'Brookfield India Real Estate Trust', 'BIRET', 'BIRET.NS', 'Office',
-    327.24, 331, 275, '2021-02-01', 21.15, 85, 6.0, 35, 4.8,
+    319.79, 331, 275, '2021-02-01', 21.15, 85, 6.0, 35, 4.8,
     'https://www.brookfieldindiareit.in/investors',
     'https://media.brookfieldindiareit.in/Brookfield_REIT_Earnings_Jan30_2026_f4421e7b0a.pdf'),
   buildREITData('nexus', 'Nexus Select Trust', 'NXST', 'NXST.NS', 'Retail',
-    154.68, 148, 100, '2023-05-01', 8.80, 97, 5.5, 18, 3.1,
+    152.60, 148, 100, '2023-05-01', 8.80, 97, 5.5, 18, 3.1,
     'https://www.nexusselecttrust.com/investors',
     'https://www.nexusselecttrust.com/resources/assets/pdf/Nexus-Select-Trust-Dec-25-vf.pdf'),
 ];

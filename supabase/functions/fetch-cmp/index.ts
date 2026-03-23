@@ -4,17 +4,17 @@ const corsHeaders = {
 };
 
 const TICKERS: Record<string, string> = {
-  embassy: 'EMBASSY.NS',
-  mindspace: 'MINDSPACE.NS',
-  brookfield: 'BIRET.NS',
-  nexus: 'NXST.NS',
+  embassy: 'EMBASSY',
+  mindspace: 'MINDSPACE',
+  brookfield: 'BIRET',
+  nexus: 'NXST',
 };
 
 const FALLBACK_CMP: Record<string, number> = {
-  embassy: 416.68,
-  mindspace: 457.02,
-  brookfield: 327.24,
-  nexus: 154.68,
+  embassy: 417.00,
+  mindspace: 449.59,
+  brookfield: 319.79,
+  nexus: 152.60,
 };
 
 interface PriceResult {
@@ -24,10 +24,65 @@ interface PriceResult {
   isLive: boolean;
   fetchedAt: string;
   error: string | null;
+  source: string;
 }
 
-async function fetchFromYahoo(ticker: string): Promise<number | null> {
+/**
+ * Primary source: NSE India API
+ * Requires a session cookie obtained by first hitting the main page
+ */
+async function fetchFromNSE(symbol: string): Promise<number | null> {
   try {
+    // Step 1: Get session cookies from NSE homepage
+    const homeResp = await fetch('https://www.nseindia.com', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      },
+      redirect: 'follow',
+    });
+
+    // Extract cookies from response
+    const cookies = homeResp.headers.get('set-cookie') || '';
+    const cookieStr = cookies.split(',').map(c => c.split(';')[0].trim()).join('; ');
+
+    // Step 2: Fetch quote with session cookies
+    const url = `https://www.nseindia.com/api/quote-equity?symbol=${encodeURIComponent(symbol)}`;
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://www.nseindia.com/',
+        'Cookie': cookieStr,
+      },
+    });
+
+    if (!resp.ok) {
+      console.warn(`NSE API returned ${resp.status} for ${symbol}`);
+      return null;
+    }
+
+    const data = await resp.json();
+    const price = data?.priceInfo?.lastPrice;
+    if (price && typeof price === 'number' && price > 0 && price < 10000) {
+      return price;
+    }
+    return null;
+  } catch (err) {
+    console.warn(`NSE India failed for ${symbol}:`, err);
+    return null;
+  }
+}
+
+/**
+ * Secondary source: Yahoo Finance v8 chart API
+ * Includes staleness check — rejects prices with regularMarketTime older than 7 days
+ */
+async function fetchFromYahoo(symbol: string): Promise<number | null> {
+  try {
+    const ticker = `${symbol}.NS`;
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
     const resp = await fetch(url, {
       headers: {
@@ -40,18 +95,33 @@ async function fetchFromYahoo(ticker: string): Promise<number | null> {
       return null;
     }
     const data = await resp.json();
-    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+    const meta = data?.chart?.result?.[0]?.meta;
+    const price = meta?.regularMarketPrice;
+
+    // Staleness check: reject if regularMarketTime is more than 7 days old
+    if (meta?.regularMarketTime) {
+      const marketTime = meta.regularMarketTime * 1000; // Convert to ms
+      const now = Date.now();
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+      if (now - marketTime > sevenDaysMs) {
+        console.warn(`Yahoo data for ${symbol} is stale (market time: ${new Date(marketTime).toISOString()}), skipping`);
+        return null;
+      }
+    }
+
     if (price && price > 0 && price < 10000) return price;
     return null;
   } catch (err) {
-    console.warn(`Yahoo Finance failed for ${ticker}:`, err);
+    console.warn(`Yahoo Finance failed for ${symbol}:`, err);
     return null;
   }
 }
 
-async function fetchFromGoogleFinance(ticker: string): Promise<number | null> {
+/**
+ * Tertiary source: Google Finance HTML scraping
+ */
+async function fetchFromGoogleFinance(symbol: string): Promise<number | null> {
   try {
-    const symbol = ticker.replace('.NS', '');
     const url = `https://www.google.com/finance/quote/${symbol}:NSE`;
     const resp = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
@@ -76,45 +146,18 @@ async function fetchFromGoogleFinance(ticker: string): Promise<number | null> {
     }
     return null;
   } catch (err) {
-    console.warn(`Google Finance failed for ${ticker}:`, err);
+    console.warn(`Google Finance failed for ${symbol}:`, err);
     return null;
   }
 }
 
-async function fetchFromKoyebAPI(ticker: string): Promise<number | null> {
-  try {
-    const symbol = ticker.replace('.NS', '');
-    const url = `https://military-jobye-haiqstudios-14f59639.koyeb.app/stock/${symbol}`;
-    const resp = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-    });
-    if (!resp.ok) {
-      await resp.text();
-      return null;
-    }
-    const data = await resp.json();
-    const price = data?.currentPrice || data?.lastPrice || data?.price;
-    if (price && typeof price === 'number' && price > 0 && price < 10000) return price;
-    // Try parsing string price
-    if (price && typeof price === 'string') {
-      const parsed = parseFloat(price.replace(/,/g, ''));
-      if (parsed > 0 && parsed < 10000) return parsed;
-    }
-    return null;
-  } catch (err) {
-    console.warn(`Koyeb API failed for ${ticker}:`, err);
-    return null;
-  }
-}
-
-async function fetchPrice(reitId: string, ticker: string): Promise<PriceResult> {
+async function fetchPrice(reitId: string, symbol: string): Promise<PriceResult> {
   const now = new Date().toISOString();
 
-  // Try multiple sources in order
   const sources = [
-    { name: 'Yahoo', fn: () => fetchFromYahoo(ticker) },
-    { name: 'Koyeb', fn: () => fetchFromKoyebAPI(ticker) },
-    { name: 'Google', fn: () => fetchFromGoogleFinance(ticker) },
+    { name: 'NSE', fn: () => fetchFromNSE(symbol) },
+    { name: 'Yahoo', fn: () => fetchFromYahoo(symbol) },
+    { name: 'Google', fn: () => fetchFromGoogleFinance(symbol) },
   ];
 
   for (const source of sources) {
@@ -122,22 +165,23 @@ async function fetchPrice(reitId: string, ticker: string): Promise<PriceResult> 
       const price = await source.fn();
       if (price !== null) {
         console.log(`✓ ${reitId} price from ${source.name}: ₹${price}`);
-        return { reitId, ticker, cmp: price, isLive: true, fetchedAt: now, error: null };
+        return { reitId, ticker: `${symbol}.NS`, cmp: price, isLive: true, fetchedAt: now, error: null, source: source.name };
       }
     } catch (err) {
       console.warn(`${source.name} failed for ${reitId}:`, err);
     }
   }
 
-  // Fallback to hardcoded verified prices
+  // Fallback
   console.log(`✗ ${reitId}: all sources failed, using fallback ₹${FALLBACK_CMP[reitId]}`);
   return {
     reitId,
-    ticker,
+    ticker: `${symbol}.NS`,
     cmp: FALLBACK_CMP[reitId] ?? 0,
     isLive: false,
     fetchedAt: now,
-    error: 'Live price unavailable. Using verified Mar 21 closing price.',
+    error: 'Live price unavailable. Using latest verified closing price.',
+    source: 'fallback',
   };
 }
 
@@ -147,8 +191,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const pricePromises = Object.entries(TICKERS).map(([reitId, ticker]) =>
-      fetchPrice(reitId, ticker)
+    const pricePromises = Object.entries(TICKERS).map(([reitId, symbol]) =>
+      fetchPrice(reitId, symbol)
     );
 
     const prices = await Promise.all(pricePromises);
