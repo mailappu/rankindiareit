@@ -25,6 +25,10 @@ export interface LivePrice {
   isLive: boolean;
   fetchedAt: string;
   error: string | null;
+  growth1Y?: number;
+  growth3Y?: number | null;
+  growth5Y?: number | null;
+  cagrSource?: string;
 }
 
 export interface SyncResult {
