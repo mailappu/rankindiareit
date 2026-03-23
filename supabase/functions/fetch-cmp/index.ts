@@ -196,21 +196,11 @@ async function fetchHistoricalPrices(symbol: string, nseCookies: string): Promis
 }
 
 /**
- * Primary source: NSE India API
+ * Primary source: NSE India API (uses shared cookies)
  */
-async function fetchFromNSE(symbol: string): Promise<number | null> {
+async function fetchFromNSE(symbol: string, cookieStr: string): Promise<number | null> {
   try {
-    const homeResp = await fetch('https://www.nseindia.com', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-      },
-      redirect: 'follow',
-    });
-    const cookies = homeResp.headers.get('set-cookie') || '';
-    const cookieStr = cookies.split(',').map(c => c.split(';')[0].trim()).join('; ');
-
+    if (!cookieStr) return null;
     const url = `https://www.nseindia.com/api/quote-equity?symbol=${encodeURIComponent(symbol)}`;
     const resp = await fetch(url, {
       headers: {
