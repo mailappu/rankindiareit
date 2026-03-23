@@ -63,10 +63,25 @@ export default function Index() {
 
       // Fetch live CMP prices
       try {
+        console.log('[CMP Fetch] Calling fetch-cmp edge function...');
         const { data, error } = await supabase.functions.invoke('fetch-cmp');
+        console.log('[CMP Fetch] Raw response:', JSON.stringify(data, null, 2));
+        if (error) console.error('[CMP Fetch] Error:', error);
+
         if (!error && data?.success && Array.isArray(data.prices)) {
           const priceMap: Record<string, LivePrice> = {};
           for (const p of data.prices) {
+            // 30% drift warning
+            const baseline = LIVE_REIT_DATA.find(r => r.id === p.reitId);
+            if (baseline) {
+              const drift = Math.abs(p.cmp - baseline.cmp) / baseline.cmp;
+              if (drift > 0.3) {
+                console.warn(`[CMP Warning] ${p.reitId}: ₹${p.cmp} vs baseline ₹${baseline.cmp} (${(drift * 100).toFixed(1)}% drift)`);
+                toast.warning(`Data Sync Warning: ${p.reitId.toUpperCase()}`, {
+                  description: `Price ₹${p.cmp} is ${(drift * 100).toFixed(0)}% different from baseline ₹${baseline.cmp}. Verify manually.`,
+                });
+              }
+            }
             priceMap[p.reitId] = {
               reitId: p.reitId,
               cmp: p.cmp,
@@ -77,11 +92,10 @@ export default function Index() {
           }
           setLivePrices(priceMap);
           setReitData(applyLivePrices(LIVE_REIT_DATA, priceMap));
-          // Persist to localStorage
           localStorage.setItem('reit_cmp_cache', JSON.stringify(priceMap));
         }
       } catch (err) {
-        console.warn('Auto CMP fetch failed:', err);
+        console.warn('[CMP Fetch] Auto CMP fetch failed:', err);
       }
 
       setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
@@ -117,7 +131,10 @@ export default function Index() {
       }
 
       // Smart sync: PDF discovery + CMP fetch
+      console.log('[Smart Sync] Starting sync-proxy + fetch-cmp...');
       const result = await performSmartSync();
+      console.log('[Smart Sync] Live prices:', result.livePrices);
+      console.log('[Smart Sync] Errors:', result.errors);
 
       setSourceStatus(result.sourceStatus);
       setDiscoveredUrls(result.discoveredUrls);
