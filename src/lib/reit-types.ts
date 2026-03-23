@@ -39,6 +39,7 @@ export interface ScoreBreakdown {
   safetyScore: number;
   growthScore: number;
   pipelineScore: number;
+  postTaxYield: number;
   finalScore: number;
   rank: number;
 }
