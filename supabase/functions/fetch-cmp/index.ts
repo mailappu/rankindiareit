@@ -287,13 +287,13 @@ async function fetchFromGoogleFinance(symbol: string): Promise<number | null> {
   }
 }
 
-async function fetchPrice(reitId: string, symbol: string): Promise<PriceResult> {
+async function fetchPrice(reitId: string, symbol: string, nseCookies: string): Promise<PriceResult> {
   const now = new Date().toISOString();
   const fallbackCagr = FALLBACK_CAGR[reitId] || { growth1Y: 0, growth3Y: null, growth5Y: null };
 
-  // Fetch current price from multiple sources
+  // Fetch current price: NSE (with shared cookies) → Yahoo → Google → Fallback
   const sources = [
-    { name: 'NSE', fn: () => fetchFromNSE(symbol) },
+    { name: 'NSE', fn: () => fetchFromNSE(symbol, nseCookies) },
     { name: 'Yahoo', fn: () => fetchFromYahoo(symbol) },
     { name: 'Google', fn: () => fetchFromGoogleFinance(symbol) },
   ];
@@ -318,8 +318,8 @@ async function fetchPrice(reitId: string, symbol: string): Promise<PriceResult> 
   const cmp = currentPrice ?? FALLBACK_CMP[reitId] ?? 0;
   const isLive = currentPrice !== null;
 
-  // Fetch historical prices for CAGR calculation
-  const historical = await fetchHistoricalPrices(symbol);
+  // Fetch historical prices for CAGR: NSE first, Yahoo fallback
+  const historical = await fetchHistoricalPrices(symbol, nseCookies);
   let growth1Y = fallbackCagr.growth1Y;
   let growth3Y = fallbackCagr.growth3Y;
   let growth5Y = fallbackCagr.growth5Y;
@@ -327,7 +327,7 @@ async function fetchPrice(reitId: string, symbol: string): Promise<PriceResult> 
 
   if (historical.price1YAgo) {
     growth1Y = Math.round(calcCAGR(historical.price1YAgo, cmp, 1) * 10) / 10;
-    cagrSource = 'yahoo-historical';
+    cagrSource = historical.source;
   }
   if (historical.price3YAgo) {
     growth3Y = Math.round(calcCAGR(historical.price3YAgo, cmp, 3) * 10) / 10;
@@ -336,7 +336,7 @@ async function fetchPrice(reitId: string, symbol: string): Promise<PriceResult> 
     growth5Y = Math.round(calcCAGR(historical.price5YAgo, cmp, 5) * 10) / 10;
   }
 
-  console.log(`[CAGR] ${reitId}: 1Y=${growth1Y}%, 3Y=${growth3Y}%, 5Y=${growth5Y}% (source: ${cagrSource})`);
+  console.log(`[CAGR] ${reitId}: 1Y=${growth1Y}%, 3Y=${growth3Y}%, 5Y=${growth5Y}% (CMP source: ${priceSource}, CAGR source: ${cagrSource})`);
 
   return {
     reitId,
@@ -359,8 +359,13 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get NSE session cookies once, share across all fetches
+    console.log('[Init] Getting NSE session cookies...');
+    const nseCookies = await getNSECookies();
+    console.log(`[Init] NSE cookies: ${nseCookies ? 'obtained' : 'failed'}`);
+
     const pricePromises = Object.entries(TICKERS).map(([reitId, symbol]) =>
-      fetchPrice(reitId, symbol)
+      fetchPrice(reitId, symbol, nseCookies)
     );
 
     const prices = await Promise.all(pricePromises);
