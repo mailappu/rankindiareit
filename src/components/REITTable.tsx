@@ -13,6 +13,7 @@ type SortKey = keyof ScoredREIT;
 interface REITTableProps {
   data: ScoredREIT[];
   gsecYield: number;
+  taxRate: number;
   sourceStatus?: Record<string, 'ok' | 'error'>;
   discoveredUrls?: Record<string, DiscoveredUrl>;
   livePrices?: Record<string, LivePrice>;
@@ -26,6 +27,7 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatm
   { key: 'cmp', label: 'CMP (₹)', format: v => `₹${v.toFixed(2)}` },
   { key: 'nav', label: 'NAV (₹)', format: v => `₹${v}` },
   { key: 'divYield', label: 'Div Yield', format: v => `${v.toFixed(2)}%`, heatmap: 'divYield' },
+  { key: 'postTaxYield', label: 'Post-Tax Yield', format: v => `${v.toFixed(2)}%`, heatmap: 'divYield' },
   { key: 'growth1Y', label: '1Y CAGR', format: v => `${v.toFixed(1)}%`, heatmap: 'growth' },
   { key: 'growth3Y', label: '3Y CAGR', format: v => v !== null ? `${v.toFixed(1)}%` : '—' },
   { key: 'growth5Y', label: '5Y CAGR', format: v => v !== null ? `${v.toFixed(1)}%` : '—' },
@@ -306,7 +308,7 @@ function ErrorRow({ colCount }: { colCount: number }) {
   );
 }
 
-export function REITTable({ data, gsecYield, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
+export function REITTable({ data, gsecYield, taxRate, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
