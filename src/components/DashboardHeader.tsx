@@ -52,6 +52,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
         {/* Controls row */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {/* Benchmark indicator */}
+          <TooltipProvider>
           <Dialog>
             <DialogTrigger asChild>
               <button className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity cursor-pointer text-xs font-mono">
@@ -61,6 +62,14 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
                 </span>
                 <span className="hidden sm:inline text-muted-foreground">BENCHMARK</span>
                 <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
+                    <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
+                  </TooltipContent>
+                </Tooltip>
                 <span title="Verified Mar 21, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
                 <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
                   gsecStatus === 'live'
