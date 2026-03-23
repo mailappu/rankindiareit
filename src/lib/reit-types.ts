@@ -65,10 +65,10 @@ export const TTM_DISTRIBUTIONS: Record<string, number> = {
 
 // Fallback CMP prices (verified closing prices Mar 21 2026)
 export const FALLBACK_CMP: Record<string, number> = {
-  embassy: 416.68,
-  mindspace: 457.02,
-  brookfield: 327.24,
-  nexus: 154.68,
+  embassy: 417.00,
+  mindspace: 449.59,
+  brookfield: 319.79,
+  nexus: 152.60,
 };
 
 // NSE ticker symbols for live price fetching
