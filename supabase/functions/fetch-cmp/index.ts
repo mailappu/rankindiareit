@@ -46,17 +46,108 @@ function calcCAGR(startPrice: number, endPrice: number, years: number): number {
 }
 
 /**
- * Fetch historical prices from Yahoo Finance chart API for CAGR calculation.
- * Returns { price1YAgo, price3YAgo, price5YAgo } or nulls.
+ * Fetch historical closing price from NSE for a specific date range.
+ * Returns the closing price closest to the target date.
  */
-async function fetchHistoricalPrices(symbol: string): Promise<{
-  price1YAgo: number | null;
-  price3YAgo: number | null;
-  price5YAgo: number | null;
-}> {
+async function fetchNSEHistoricalPrice(symbol: string, targetDate: Date, cookieStr: string): Promise<number | null> {
+  try {
+    // Search in a 30-day window around the target date
+    const from = new Date(targetDate);
+    from.setDate(from.getDate() - 15);
+    const to = new Date(targetDate);
+    to.setDate(to.getDate() + 15);
+
+    const fmt = (d: Date) => `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+    const url = `https://www.nseindia.com/api/historical/cm/equity?symbol=${encodeURIComponent(symbol)}&from=${fmt(from)}&to=${fmt(to)}`;
+
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': 'https://www.nseindia.com/',
+        'Cookie': cookieStr,
+      },
+    });
+
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const records = data?.data || [];
+
+    if (records.length === 0) return null;
+
+    // Find record closest to target date
+    let bestRecord: any = null;
+    let bestDiff = Infinity;
+    for (const rec of records) {
+      const recDate = new Date(rec.CH_TIMESTAMP || rec.mTIMESTAMP);
+      const diff = Math.abs(recDate.getTime() - targetDate.getTime());
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestRecord = rec;
+      }
+    }
+
+    const price = bestRecord?.CH_CLOSING_PRICE || bestRecord?.CLOSE;
+    if (price && price > 0) return parseFloat(price);
+    return null;
+  } catch (err) {
+    console.warn(`NSE historical failed for ${symbol}:`, err);
+    return null;
+  }
+}
+
+/**
+ * Get NSE session cookies needed for API calls
+ */
+async function getNSECookies(): Promise<string> {
+  try {
+    const homeResp = await fetch('https://www.nseindia.com', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      },
+      redirect: 'follow',
+    });
+    const cookies = homeResp.headers.get('set-cookie') || '';
+    return cookies.split(',').map(c => c.split(';')[0].trim()).join('; ');
+  } catch {
+    return '';
+  }
+}
+
+type HistoricalPrices = { price1YAgo: number | null; price3YAgo: number | null; price5YAgo: number | null };
+
+/**
+ * Primary: NSE historical data. Fallback: Yahoo Finance chart API.
+ */
+async function fetchHistoricalPrices(symbol: string, nseCookies: string): Promise<HistoricalPrices & { source: string }> {
+  const now = new Date();
+  const date1YAgo = new Date(now); date1YAgo.setFullYear(date1YAgo.getFullYear() - 1);
+  const date3YAgo = new Date(now); date3YAgo.setFullYear(date3YAgo.getFullYear() - 3);
+  const date5YAgo = new Date(now); date5YAgo.setFullYear(date5YAgo.getFullYear() - 5);
+
+  // Try NSE first
+  if (nseCookies) {
+    try {
+      const [p1, p3, p5] = await Promise.all([
+        fetchNSEHistoricalPrice(symbol, date1YAgo, nseCookies),
+        fetchNSEHistoricalPrice(symbol, date3YAgo, nseCookies),
+        fetchNSEHistoricalPrice(symbol, date5YAgo, nseCookies),
+      ]);
+
+      if (p1 !== null) {
+        console.log(`[Historical-NSE] ${symbol}: 1Y=₹${p1}, 3Y=₹${p3}, 5Y=₹${p5}`);
+        return { price1YAgo: p1, price3YAgo: p3, price5YAgo: p5, source: 'NSE' };
+      }
+    } catch (err) {
+      console.warn(`NSE historical batch failed for ${symbol}:`, err);
+    }
+  }
+
+  // Fallback to Yahoo Finance
   try {
     const ticker = `${symbol}.NS`;
-    // Fetch 5 years of monthly data
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1mo&range=5y`;
     const resp = await fetch(url, {
       headers: {
@@ -65,24 +156,19 @@ async function fetchHistoricalPrices(symbol: string): Promise<{
       },
     });
 
-    if (!resp.ok) {
-      console.warn(`Yahoo historical returned ${resp.status} for ${symbol}`);
-      return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
-    }
+    if (!resp.ok) return { price1YAgo: null, price3YAgo: null, price5YAgo: null, source: 'none' };
 
     const data = await resp.json();
     const result = data?.chart?.result?.[0];
-    if (!result) return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
+    if (!result) return { price1YAgo: null, price3YAgo: null, price5YAgo: null, source: 'none' };
 
     const timestamps: number[] = result.timestamp || [];
     const closes: (number | null)[] = result.indicators?.quote?.[0]?.close || [];
+    if (timestamps.length === 0) return { price1YAgo: null, price3YAgo: null, price5YAgo: null, source: 'none' };
 
-    if (timestamps.length === 0) return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
-
-    const now = Date.now();
+    const nowMs = Date.now();
     const oneYearMs = 365.25 * 24 * 60 * 60 * 1000;
 
-    // Find closest price to 1Y, 3Y, 5Y ago
     function findClosestPrice(targetMs: number): number | null {
       let bestIdx = -1;
       let bestDiff = Infinity;
@@ -93,22 +179,19 @@ async function fetchHistoricalPrices(symbol: string): Promise<{
           bestIdx = i;
         }
       }
-      // Accept if within 45 days of target
-      if (bestIdx >= 0 && bestDiff < 45 * 24 * 60 * 60 * 1000) {
-        return closes[bestIdx]!;
-      }
+      if (bestIdx >= 0 && bestDiff < 45 * 24 * 60 * 60 * 1000) return closes[bestIdx]!;
       return null;
     }
 
-    const price1YAgo = findClosestPrice(now - 1 * oneYearMs);
-    const price3YAgo = findClosestPrice(now - 3 * oneYearMs);
-    const price5YAgo = findClosestPrice(now - 5 * oneYearMs);
+    const price1YAgo = findClosestPrice(nowMs - 1 * oneYearMs);
+    const price3YAgo = findClosestPrice(nowMs - 3 * oneYearMs);
+    const price5YAgo = findClosestPrice(nowMs - 5 * oneYearMs);
 
-    console.log(`[Historical] ${symbol}: 1Y ago=₹${price1YAgo}, 3Y ago=₹${price3YAgo}, 5Y ago=₹${price5YAgo}`);
-    return { price1YAgo, price3YAgo, price5YAgo };
+    console.log(`[Historical-Yahoo] ${symbol}: 1Y=₹${price1YAgo}, 3Y=₹${price3YAgo}, 5Y=₹${price5YAgo}`);
+    return { price1YAgo, price3YAgo, price5YAgo, source: 'Yahoo' };
   } catch (err) {
-    console.warn(`Historical price fetch failed for ${symbol}:`, err);
-    return { price1YAgo: null, price3YAgo: null, price5YAgo: null };
+    console.warn(`Yahoo historical failed for ${symbol}:`, err);
+    return { price1YAgo: null, price3YAgo: null, price5YAgo: null, source: 'none' };
   }
 }
 
