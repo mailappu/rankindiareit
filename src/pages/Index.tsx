@@ -131,7 +131,10 @@ export default function Index() {
       }
 
       // Smart sync: PDF discovery + CMP fetch
+      console.log('[Smart Sync] Starting sync-proxy + fetch-cmp...');
       const result = await performSmartSync();
+      console.log('[Smart Sync] Live prices:', result.livePrices);
+      console.log('[Smart Sync] Errors:', result.errors);
 
       setSourceStatus(result.sourceStatus);
       setDiscoveredUrls(result.discoveredUrls);
