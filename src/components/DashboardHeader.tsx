@@ -130,6 +130,24 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
               </div>
             </DialogContent>
           </Dialog>
+          </TooltipProvider>
+
+          {/* Tax Bracket Selector */}
+          <div className="flex items-center gap-1.5 text-xs font-mono">
+            <span className="hidden sm:inline text-muted-foreground">TAX</span>
+            <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v) as TaxBracket)}>
+              <SelectTrigger className="h-7 w-[80px] text-[10px] font-mono border-border bg-secondary/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TAX_BRACKETS.map(rate => (
+                  <SelectItem key={rate} value={String(rate)} className="text-xs font-mono">
+                    {rate === 0 ? '0%' : rate === 31.2 ? '31.2% HNI' : `${rate}%`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {lastSynced && (
             <div className="flex items-center gap-1.5 text-xs font-mono">
