@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
