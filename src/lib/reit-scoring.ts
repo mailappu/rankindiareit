@@ -38,7 +38,7 @@ export function calculateScores(
       return {
         ...reit, divScore: r(divScore), valueScore: r(valueScore),
         safetyScore: r(safetyScore), growthScore: r(growthScore),
-        pipelineScore: r(pipelineScore), finalScore: 0, rank: 0,
+        pipelineScore: r(pipelineScore), postTaxYield: r(postTaxYield), finalScore: 0, rank: 0,
       };
     }
 
@@ -64,6 +64,7 @@ export function calculateScores(
       safetyScore: r(safetyScore),
       growthScore: r(growthScore),
       pipelineScore: r(pipelineScore),
+      postTaxYield: r(postTaxYield),
       finalScore: r(finalScore),
       rank: 0,
     };
