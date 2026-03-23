@@ -25,6 +25,10 @@ export interface LivePrice {
   isLive: boolean;
   fetchedAt: string;
   error: string | null;
+  growth1Y?: number;
+  growth3Y?: number | null;
+  growth5Y?: number | null;
+  cagrSource?: string;
 }
 
 export interface SyncResult {
@@ -109,6 +113,10 @@ async function fetchLivePrices(): Promise<Record<string, LivePrice>> {
           isLive: p.isLive,
           fetchedAt: p.fetchedAt,
           error: p.error,
+          growth1Y: p.growth1Y,
+          growth3Y: p.growth3Y,
+          growth5Y: p.growth5Y,
+          cagrSource: p.cagrSource,
         };
       }
       storeCMPCache(result);
@@ -160,6 +168,9 @@ export function applyLivePrices(
       divYield: newDivYield,
       isLiveCMP: lp.isLive,
       cmpCachedAt: lp.fetchedAt,
+      ...(lp.growth1Y !== undefined ? { growth1Y: lp.growth1Y } : {}),
+      ...(lp.growth3Y !== undefined ? { growth3Y: lp.growth3Y } : {}),
+      ...(lp.growth5Y !== undefined ? { growth5Y: lp.growth5Y } : {}),
     };
   });
 }

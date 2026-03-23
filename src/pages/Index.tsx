@@ -88,6 +88,10 @@ export default function Index() {
               isLive: p.isLive,
               fetchedAt: p.fetchedAt,
               error: p.error,
+              growth1Y: p.growth1Y,
+              growth3Y: p.growth3Y,
+              growth5Y: p.growth5Y,
+              cagrSource: p.cagrSource,
             };
           }
           setLivePrices(priceMap);
