@@ -1,16 +1,20 @@
-import { REITData, ScoreBreakdown, StrategyWeights } from './reit-types';
+import { REITData, ScoreBreakdown, StrategyWeights, computePostTaxYield } from './reit-types';
 
 export function calculateScores(
   reits: REITData[],
   gsecYield: number,
-  weights: StrategyWeights
+  weights: StrategyWeights,
+  taxRate: number = 10
 ): (REITData & ScoreBreakdown)[] {
   const maxPipeline = Math.max(...reits.map(r => r.pipeline));
   const maxGrowth1Y = Math.max(...reits.map(r => r.growth1Y));
 
   const scored = reits.map(reit => {
-    // DividendScore = (REIT_Yield / G-Sec_Yield) * 100
-    const divScore = (reit.divYield / gsecYield) * 100;
+    // Post-tax yield for scoring
+    const postTaxYield = computePostTaxYield(reit.taxBreakdown, reit.ttmDistribution, reit.cmp, taxRate);
+
+    // DividendScore = (PostTax_Yield / G-Sec_Yield) * 100
+    const divScore = (postTaxYield / gsecYield) * 100;
 
     // ValueScore = ((NAV - CMP) / NAV) * 100
     const valueScore = ((reit.nav - reit.cmp) / reit.nav) * 100;
@@ -34,7 +38,7 @@ export function calculateScores(
       return {
         ...reit, divScore: r(divScore), valueScore: r(valueScore),
         safetyScore: r(safetyScore), growthScore: r(growthScore),
-        pipelineScore: r(pipelineScore), finalScore: 0, rank: 0,
+        pipelineScore: r(pipelineScore), postTaxYield: r(postTaxYield), finalScore: 0, rank: 0,
       };
     }
 
@@ -60,6 +64,7 @@ export function calculateScores(
       safetyScore: r(safetyScore),
       growthScore: r(growthScore),
       pipelineScore: r(pipelineScore),
+      postTaxYield: r(postTaxYield),
       finalScore: r(finalScore),
       rank: 0,
     };

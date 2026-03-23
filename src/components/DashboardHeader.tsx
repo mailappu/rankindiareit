@@ -1,8 +1,12 @@
-import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3 } from 'lucide-react';
+import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import type { GSecStatus } from '@/lib/gsec-service';
 import type { SyncError } from '@/lib/sync-engine';
+import type { TaxBracket } from '@/lib/reit-types';
+import { TAX_BRACKETS } from '@/lib/reit-types';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface DashboardHeaderProps {
   gsecYield: number;
@@ -13,9 +17,11 @@ interface DashboardHeaderProps {
   onSync: () => void;
   provenanceBadge: string | null;
   syncErrors: SyncError[];
+  taxRate: TaxBracket;
+  onTaxRateChange: (rate: TaxBracket) => void;
 }
 
-export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors, taxRate, onTaxRateChange }: DashboardHeaderProps) {
   const pulseColor = gsecStatus === 'live'
     ? 'bg-terminal-green'
     : gsecStatus === 'cached'
@@ -46,6 +52,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
         {/* Controls row */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {/* Benchmark indicator */}
+          <TooltipProvider>
           <Dialog>
             <DialogTrigger asChild>
               <button className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity cursor-pointer text-xs font-mono">
@@ -55,6 +62,14 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
                 </span>
                 <span className="hidden sm:inline text-muted-foreground">BENCHMARK</span>
                 <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
+                    <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
+                  </TooltipContent>
+                </Tooltip>
                 <span title="Verified Mar 21, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
                 <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
                   gsecStatus === 'live'
@@ -115,6 +130,24 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
               </div>
             </DialogContent>
           </Dialog>
+          </TooltipProvider>
+
+          {/* Tax Bracket Selector */}
+          <div className="flex items-center gap-1.5 text-xs font-mono">
+            <span className="hidden sm:inline text-muted-foreground">TAX</span>
+            <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v) as TaxBracket)}>
+              <SelectTrigger className="h-7 w-[80px] text-[10px] font-mono border-border bg-secondary/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TAX_BRACKETS.map(rate => (
+                  <SelectItem key={rate} value={String(rate)} className="text-xs font-mono">
+                    {rate === 0 ? '0%' : rate === 31.2 ? '31.2% HNI' : `${rate}%`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {lastSynced && (
             <div className="flex items-center gap-1.5 text-xs font-mono">

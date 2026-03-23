@@ -13,6 +13,7 @@ import {
   STRATEGY_PRESETS,
   StrategyPreset,
   StrategyWeights,
+  TaxBracket,
 } from '@/lib/reit-types';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ export default function Index() {
   const [gsecYield, setGsecYield] = useState(DEFAULT_GSEC_YIELD);
   const [preset, setPreset] = useState<StrategyPreset>('income');
   const [weights, setWeights] = useState<StrategyWeights>(STRATEGY_PRESETS.income);
+  const [taxRate, setTaxRate] = useState<TaxBracket>(10);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [reitData, setReitData] = useState(() => {
@@ -39,8 +41,8 @@ export default function Index() {
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>(getStoredCMPCache);
 
   const scoredData = useMemo(
-    () => calculateScores(reitData, gsecYield, weights),
-    [reitData, gsecYield, weights]
+    () => calculateScores(reitData, gsecYield, weights, taxRate),
+    [reitData, gsecYield, weights, taxRate]
   );
 
   // Auto-fetch live CMP prices and G-Sec on mount
@@ -232,6 +234,8 @@ export default function Index() {
         onSync={handleSync}
         provenanceBadge={provenanceBadge}
         syncErrors={syncErrors}
+        taxRate={taxRate}
+        onTaxRateChange={setTaxRate}
       />
 
       <main className="flex-1 px-3 sm:px-6 py-4 space-y-4 max-w-[1600px] mx-auto w-full">
@@ -242,7 +246,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} gsecYield={gsecYield} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
+        <REITTable data={scoredData} gsecYield={gsecYield} taxRate={taxRate} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
 
         <TerminologyCard />
 
