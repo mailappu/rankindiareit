@@ -1,3 +1,10 @@
+export interface TaxBreakdown {
+  interest: number;
+  divExempt: number;
+  divTaxable: number;
+  amortization: number;
+}
+
 export interface REITData {
   id: string;
   name: string;
@@ -10,6 +17,7 @@ export interface REITData {
   listingDate: string;
   ttmDistribution: number;
   divYield: number;
+  taxBreakdown: TaxBreakdown;
   growth1Y: number;
   growth3Y: number | null;
   growth5Y: number | null;
@@ -41,6 +49,27 @@ export interface StrategyWeights {
   value: number;
   growth: number;
   pipeline: number;
+}
+
+export const TAX_BRACKETS = [0, 10, 20, 31.2] as const;
+export type TaxBracket = typeof TAX_BRACKETS[number];
+
+/** Calculate post-tax yield given tax breakdown, TTM distribution, CMP, and tax rate */
+export function computePostTaxYield(
+  taxBreakdown: TaxBreakdown,
+  ttmDistribution: number,
+  cmp: number,
+  taxRate: number // as percentage e.g. 31.2
+): number {
+  if (!cmp || cmp <= 0) return 0;
+  const rate = taxRate / 100;
+  // Interest and divTaxable components are taxed; divExempt and amortization are tax-free
+  const postTaxDistribution =
+    ttmDistribution * taxBreakdown.interest * (1 - rate) +
+    ttmDistribution * taxBreakdown.divExempt * 1 +
+    ttmDistribution * taxBreakdown.divTaxable * (1 - rate) +
+    ttmDistribution * taxBreakdown.amortization * 1;
+  return (postTaxDistribution / cmp) * 100;
 }
 
 export type StrategyPreset = 'income' | 'growth' | 'riskAverse' | 'custom';
@@ -95,12 +124,20 @@ export function computeDivYield(ttmDistribution: number, cmp: number): number {
   return (ttmDistribution / cmp) * 100;
 }
 
+export const REIT_TAX_BREAKDOWNS: Record<string, TaxBreakdown> = {
+  embassy:    { interest: 0.15, divExempt: 0.75, divTaxable: 0,    amortization: 0.10 },
+  mindspace:  { interest: 0.05, divExempt: 0,    divTaxable: 0.85, amortization: 0.10 },
+  brookfield: { interest: 0.35, divExempt: 0,    divTaxable: 0.20, amortization: 0.45 },
+  nexus:      { interest: 0.20, divExempt: 0.30, divTaxable: 0.10, amortization: 0.40 },
+};
+
 function buildREITData(
   id: string, name: string, ticker: string, nseSymbol: string, sector: 'Office' | 'Retail',
   cmp: number, nav: number, listingPrice: number, listingDate: string,
   ttmDistribution: number, occupancy: number, wale: number, ltv: number,
   pipeline: number, irUrl: string, latestPdfUrl: string | null
 ): REITData {
+  const taxBreakdown = REIT_TAX_BREAKDOWNS[id] || { interest: 0.25, divExempt: 0.25, divTaxable: 0.25, amortization: 0.25 };
   const age = yearsSince(listingDate, CURRENT_DATE);
   const sinceListing = calcCAGR(listingPrice, cmp, age);
   const growth1Y = 0;
@@ -110,7 +147,7 @@ function buildREITData(
 
   return {
     id, name, ticker, nseSymbol, sector, cmp, nav, listingPrice, listingDate,
-    ttmDistribution, divYield,
+    ttmDistribution, divYield, taxBreakdown,
     growth1Y, growth3Y, growth5Y, sinceListing: Math.round(sinceListing * 10) / 10,
     occupancy, wale, ltv, pipeline,
     lastUpdated: CURRENT_DATE,
