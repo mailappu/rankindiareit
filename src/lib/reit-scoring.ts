@@ -19,8 +19,14 @@ export function calculateScores(
     // ValueScore = ((NAV - CMP) / NAV) * 100
     const valueScore = ((reit.nav - reit.cmp) / reit.nav) * 100;
 
-    // SafetyScore = (Occupancy + (100 - LTV) + (WALE * 10)) / 3
-    const safetyScore = (reit.occupancy + (100 - reit.ltv) + (reit.wale * 10)) / 3;
+    // SafetyScore = (NormOccupancy * 0.40) + (NormWALE * 0.40) + (LTVScore * 0.20)
+    const normOccupancy = (reit.occupancy / 100) * 100; // occupancy already in %
+    const normWALE = (reit.wale / 10) * 100; // 10Y as local max
+    const ltvScore = (1 - reit.ltv / 100) * 100; // inverse: lower debt = safer
+    const safetyScore = (normOccupancy * 0.40) + (normWALE * 0.40) + (ltvScore * 0.20);
+
+    // Safety audit log
+    console.log(`Safety Audit: ${reit.name} Score: ${safetyScore.toFixed(1)} | LTV Impact: ${(ltvScore * 0.2).toFixed(1)}`);
 
     // GrowthScore = normalized 1Y growth (relative to group max)
     const growthScore = (reit.growth1Y / maxGrowth1Y) * 100;
