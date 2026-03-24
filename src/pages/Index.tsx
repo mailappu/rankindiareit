@@ -8,13 +8,10 @@ import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import { discoverREITData, getCachedDiscovery, type DataDiscoveryResult } from '@/lib/data-discovery-service';
+import { useTaxContext } from '@/contexts/TaxContext';
 import {
   LIVE_REIT_DATA,
   DEFAULT_GSEC_YIELD,
-  STRATEGY_PRESETS,
-  StrategyPreset,
-  StrategyWeights,
-  TaxBracket,
   TTM_DISTRIBUTIONS,
   REIT_TAX_BREAKDOWNS,
   computePostTaxYield,
@@ -23,14 +20,11 @@ import {
 import { toast } from 'sonner';
 
 export default function Index() {
+  const { taxRate, setTaxRate, preset, setPreset, weights, setWeights } = useTaxContext();
   const [gsecYield, setGsecYield] = useState(DEFAULT_GSEC_YIELD);
-  const [preset, setPreset] = useState<StrategyPreset>('income');
-  const [weights, setWeights] = useState<StrategyWeights>(STRATEGY_PRESETS.income);
-  const [taxRate, setTaxRate] = useState<TaxBracket>(31.2);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [reitData, setReitData] = useState(() => {
-    // On mount, apply any cached CMP prices
     const cachedPrices = getStoredCMPCache();
     if (Object.keys(cachedPrices).length > 0) {
       return applyLivePrices(LIVE_REIT_DATA, cachedPrices);
