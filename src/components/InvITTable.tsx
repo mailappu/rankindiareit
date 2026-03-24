@@ -31,9 +31,6 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string }[] = 
   { key: 'divYield', label: 'Div Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
   { key: 'postTaxYield', label: 'Post-Tax Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
   { key: 'growth1Y', label: '1Y CAGR', format: v => v !== 0 ? `${v.toFixed(1)}%` : '—' },
-  { key: 'availability', label: 'Availability', format: v => v > 0 ? `${v.toFixed(1)}%` : '—' },
-  { key: 'concessionLife', label: 'Contract Life', format: v => v > 0 ? `${v.toFixed(0)}Y` : '—' },
-  { key: 'ltv', label: 'LTV', format: v => v > 0 ? `${v.toFixed(1)}%` : '—' },
   { key: 'safetyScore', label: 'Safety', format: v => v.toFixed(1) },
   { key: 'growthScore', label: 'Growth', format: v => v.toFixed(1) },
   { key: 'divScore', label: 'DivScore', format: v => v.toFixed(1) },
@@ -84,6 +81,9 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
                       {invit.concessionLife.toFixed(0)}Y Life
                     </span>
                   )}
+                  <span className="text-[8px] px-1 py-0 rounded bg-muted text-foreground font-mono">
+                    {invit.ltv.toFixed(0)}% LTV
+                  </span>
                   <span className={`text-[8px] px-1 py-0 rounded font-mono ${
                     invit.safetyScore >= 80
                       ? 'bg-terminal-green/15 text-terminal-green'
