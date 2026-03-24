@@ -84,12 +84,29 @@ export const INVIT_IDS = Object.keys(BSE_INVIT_SCRIP_CODES);
 // Sources: BSE filings, official distribution summaries, investor presentations
 const CURRENT_DATE = '2026-03-24';
 
+/**
+ * LTV Validation: Indian InvIT LTVs typically range 15–49% (SEBI cap 49%).
+ * If calculated LTV < 1%, it's likely a unit mismatch — flag for review.
+ * Formula: LTV = (Consolidated_Borrowings / Enterprise_Value) × 100
+ * Both values must be in same unit (₹ Crores) before division.
+ */
+function validateLTV(ltv: number, id: string): { ltv: number; reviewRequired: boolean } {
+  if (ltv < 1) {
+    console.warn(`[LTV Warning] ${id}: LTV ${ltv}% is below 1% — likely unit mismatch. Flagged for review. Check 'Long-term Borrowings' or 'Debt-to-Equity' tag as fallback.`);
+    return { ltv, reviewRequired: true };
+  }
+  if (ltv > 49) {
+    console.warn(`[LTV Warning] ${id}: LTV ${ltv}% exceeds SEBI 49% cap — verify data.`);
+  }
+  return { ltv, reviewRequired: false };
+}
+
 function buildInvITData(
   id: string, name: string, ticker: string, sector: InvITSector,
   cmp: number, nav: number, listingPrice: number, listingDate: string,
   ttmDistribution: number,
   taxBreakdown: InvITTaxBreakdown,
-  availability: number, concessionLife: number, ltv: number,
+  availability: number, concessionLife: number, ltv: number, // LTV as percentage (e.g. 56 = 56%)
   growth1Y: number, irUrl: string
 ): InvITData {
   const divYield = computeInvITDivYield(ttmDistribution, cmp);
@@ -98,6 +115,8 @@ function buildInvITData(
   const growth3Y = age >= 3 ? (Math.pow(cmp / listingPrice, 1 / Math.min(age, 3)) - 1) * 100 : null;
   const growth5Y = age >= 5 ? (Math.pow(cmp / listingPrice, 1 / Math.min(age, 5)) - 1) * 100 : null;
 
+  const ltvValidation = validateLTV(ltv, id);
+
   return {
     id, name, ticker,
     bseScripCode: BSE_INVIT_SCRIP_CODES[id],
@@ -105,13 +124,13 @@ function buildInvITData(
     ttmDistribution, divYield, taxBreakdown,
     growth1Y, growth3Y, growth5Y,
     sinceListing: Math.round(sinceListing * 10) / 10,
-    availability, concessionLife, ltv,
+    availability, concessionLife, ltv: ltvValidation.ltv,
     lastUpdated: CURRENT_DATE,
     irUrl,
     isLiveCMP: false,
     cmpCachedAt: null,
     dataSource: 'xbrl',
-    reviewRequired: false,
+    reviewRequired: ltvValidation.reviewRequired,
     lastXbrlSync: null,
   };
 }
