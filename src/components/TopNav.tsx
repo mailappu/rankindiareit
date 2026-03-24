@@ -1,9 +1,9 @@
 import { NavLink as RouterNavLink } from 'react-router-dom';
-import { BarChart3, Building2, Zap, Trophy, BookOpen, RefreshCw, AlertTriangle, FileWarning, Info } from 'lucide-react';
+import { BarChart3, Building2, Zap, Trophy, BookOpen, RefreshCw, AlertTriangle, FileWarning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { GSecStatus } from '@/lib/gsec-service';
 import type { SyncError } from '@/lib/sync-engine';
 import type { TaxBracket } from '@/lib/reit-types';
