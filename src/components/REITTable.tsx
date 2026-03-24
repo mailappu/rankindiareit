@@ -14,6 +14,7 @@ interface REITTableProps {
   data: ScoredREIT[];
   gsecYield: number;
   taxRate: number;
+  preset?: string;
   sourceStatus?: Record<string, 'ok' | 'error'>;
   discoveredUrls?: Record<string, DiscoveredUrl>;
   livePrices?: Record<string, LivePrice>;
@@ -414,7 +415,14 @@ function ErrorRow({ colCount }: { colCount: number }) {
   );
 }
 
-export function REITTable({ data, gsecYield, taxRate, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
+const STRATEGY_LABELS: Record<string, string> = {
+  income: 'Income Focus',
+  growth: 'Growth Focus',
+  riskAverse: 'Risk Averse',
+  custom: 'Custom',
+};
+
+export function REITTable({ data, gsecYield, taxRate, preset, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
