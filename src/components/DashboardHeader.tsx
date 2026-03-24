@@ -40,17 +40,8 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
   return (
     <header className="border-b border-border px-3 sm:px-6 py-3">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        {/* Logo + tagline */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            <h1 className="text-lg tracking-tight text-foreground">
-              <span className="font-bold">RankIndia</span><span className="font-light text-primary">REIT</span>
-            </h1>
-            <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary">BETA</span>
-          </div>
-          <span className="hidden md:block text-[10px] text-muted-foreground font-mono border-l border-border pl-3">AI-Powered Yield Analysis &amp; Risk Benchmarking</span>
-        </div>
+        {/* Controls row */}
+        <div className="flex flex-wrap items-start gap-2 sm:gap-4 w-full sm:w-auto sm:ml-auto">
 
         {/* Controls row */}
         <div className="flex flex-wrap items-start gap-2 sm:gap-4">
