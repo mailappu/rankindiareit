@@ -310,7 +310,7 @@ export default function Index() {
           onWeightsChange={setWeights}
         />
 
-        <REITTable data={scoredData} gsecYield={gsecYield} taxRate={taxRate} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
+        <REITTable data={scoredData} gsecYield={gsecYield} taxRate={taxRate} preset={preset} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
 
         <TerminologyCard />
 

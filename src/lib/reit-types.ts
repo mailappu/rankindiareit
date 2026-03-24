@@ -76,9 +76,9 @@ export function computePostTaxYield(
 export type StrategyPreset = 'income' | 'growth' | 'riskAverse' | 'custom';
 
 export const STRATEGY_PRESETS: Record<Exclude<StrategyPreset, 'custom'>, StrategyWeights> = {
-  income: { yield: 50, safety: 30, value: 20, growth: 0, pipeline: 0 },
-  growth: { yield: 0, safety: 0, value: 20, growth: 40, pipeline: 40 },
-  riskAverse: { yield: 20, safety: 60, value: 20, growth: 0, pipeline: 0 },
+  income: { yield: 70, safety: 20, value: 0, growth: 10, pipeline: 0 },
+  growth: { yield: 20, safety: 20, value: 0, growth: 60, pipeline: 0 },
+  riskAverse: { yield: 30, safety: 60, value: 0, growth: 10, pipeline: 0 },
 };
 
 export const DEFAULT_GSEC_YIELD = 6.84;

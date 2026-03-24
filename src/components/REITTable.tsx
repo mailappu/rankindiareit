@@ -14,6 +14,7 @@ interface REITTableProps {
   data: ScoredREIT[];
   gsecYield: number;
   taxRate: number;
+  preset?: string;
   sourceStatus?: Record<string, 'ok' | 'error'>;
   discoveredUrls?: Record<string, DiscoveredUrl>;
   livePrices?: Record<string, LivePrice>;
@@ -414,7 +415,14 @@ function ErrorRow({ colCount }: { colCount: number }) {
   );
 }
 
-export function REITTable({ data, gsecYield, taxRate, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
+const STRATEGY_LABELS: Record<string, string> = {
+  income: 'Income Focus',
+  growth: 'Growth Focus',
+  riskAverse: 'Risk Averse',
+  custom: 'Custom',
+};
+
+export function REITTable({ data, gsecYield, taxRate, preset, sourceStatus, discoveredUrls, livePrices }: REITTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -458,6 +466,16 @@ export function REITTable({ data, gsecYield, taxRate, sourceStatus, discoveredUr
                   >
                     <div className="flex items-center gap-1">
                       {col.label}
+                      {col.key === 'finalScore' && preset && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-terminal-amber cursor-help"><Info className="h-2.5 w-2.5" /></span>
+                          </TooltipTrigger>
+                          <TooltipContent className="text-xs font-mono">
+                            Ranking weighted for {STRATEGY_LABELS[preset] || preset} strategy
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                       {sortKey === col.key ? (
                         sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
                       ) : (
