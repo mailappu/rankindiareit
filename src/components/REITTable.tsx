@@ -37,11 +37,6 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatm
   { key: 'valueScore', label: 'Value%', format: v => `${v.toFixed(1)}%`, heatmap: 'valueScore' },
   { key: 'safetyScore', label: 'Safety', format: v => v.toFixed(1) },
   { key: 'growthScore', label: 'Growth', format: v => v.toFixed(1) },
-  { key: 'occupancy', label: 'Occup.', format: v => `${v}%`, heatmap: 'occupancy' },
-  { key: 'wale', label: 'WALE', format: v => `${v}Y` },
-  { key: 'ltv', label: 'LTV', format: v => `${v}%`, heatmap: 'ltv' },
-  { key: 'pipeline', label: 'Pipeline', format: v => `${v}M sqft` },
-  { key: 'irUrl', label: 'Source' },
 ];
 
 function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: number }) {
@@ -279,6 +274,12 @@ function REITRow({
                     <span className="text-[8px] px-1 py-0 rounded bg-terminal-cyan/15 text-terminal-cyan font-mono">
                       {reit.wale}Y WALE
                     </span>
+                    <span className="text-[8px] px-1 py-0 rounded bg-muted text-muted-foreground font-mono">
+                      {reit.ltv}% LTV
+                    </span>
+                    <span className="text-[8px] px-1 py-0 rounded bg-muted text-muted-foreground font-mono">
+                      {reit.pipeline}M sqft
+                    </span>
                     <span className={`text-[8px] px-1 py-0 rounded font-mono ${
                       reit.safetyScore >= 80
                         ? 'bg-terminal-green/15 text-terminal-green'
@@ -392,20 +393,6 @@ function REITRow({
           );
         }
 
-        if (col.key === 'irUrl') {
-          return (
-            <td key={col.key} className="px-3 py-2.5">
-              <a
-                href={reit.irUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-terminal-blue hover:text-terminal-blue/80 underline underline-offset-2 text-[10px]"
-              >
-                IR Page
-              </a>
-            </td>
-          );
-        }
 
         return (
           <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground ${val === null ? 'text-muted-foreground italic' : ''}`}>
