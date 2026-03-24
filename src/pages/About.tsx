@@ -1,8 +1,10 @@
 import { BookOpen, FileCode, Scale, Layers } from 'lucide-react';
+import { TopNav } from '@/components/TopNav';
 
 export default function About() {
   return (
-    <div className="flex-1">
+    <div className="flex-1 flex flex-col">
+      <TopNav />
       <main className="px-3 sm:px-6 py-6 space-y-8 max-w-[900px] mx-auto">
         <div>
           <h1 className="text-xl font-bold text-foreground font-mono mb-1">About & Methodology</h1>
