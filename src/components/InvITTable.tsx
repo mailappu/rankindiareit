@@ -31,9 +31,6 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string }[] = 
   { key: 'divYield', label: 'Div Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
   { key: 'postTaxYield', label: 'Post-Tax Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
   { key: 'growth1Y', label: '1Y CAGR', format: v => v !== 0 ? `${v.toFixed(1)}%` : '—' },
-  { key: 'availability', label: 'Availability', format: v => v > 0 ? `${v.toFixed(1)}%` : '—' },
-  { key: 'concessionLife', label: 'Contract Life', format: v => v > 0 ? `${v.toFixed(0)}Y` : '—' },
-  { key: 'ltv', label: 'LTV', format: v => v > 0 ? `${v.toFixed(1)}%` : '—' },
   { key: 'safetyScore', label: 'Safety', format: v => v.toFixed(1) },
   { key: 'growthScore', label: 'Growth', format: v => v.toFixed(1) },
   { key: 'divScore', label: 'DivScore', format: v => v.toFixed(1) },
@@ -84,6 +81,9 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
                       {invit.concessionLife.toFixed(0)}Y Life
                     </span>
                   )}
+                  <span className="text-[8px] px-1 py-0 rounded bg-muted text-foreground font-mono">
+                    {invit.ltv.toFixed(0)}% LTV
+                  </span>
                   <span className={`text-[8px] px-1 py-0 rounded font-mono ${
                     invit.safetyScore >= 80
                       ? 'bg-terminal-green/15 text-terminal-green'
@@ -201,24 +201,7 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
           );
         }
 
-        if (col.key === 'concessionLife' && invit.concessionLife > 0) {
-          // Contract life gauge
-          const pct = Math.min(invit.concessionLife / 30, 1) * 100;
-          return (
-            <td key={col.key} className="px-3 py-2.5">
-              <div className="space-y-0.5">
-                <span className="text-foreground text-xs">{invit.concessionLife.toFixed(0)}Y</span>
-                <div className="w-16 h-1.5 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-teal-400 transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <span className="text-[8px] text-muted-foreground">/30Y max</span>
-              </div>
-            </td>
-          );
-        }
+
 
         if (col.key === 'postTaxYield') {
           const yieldColor = invit.postTaxYield > gsecYield ? 'text-terminal-green' : 'text-foreground';
