@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, FileText, Info, WifiOff, Radio } from 'lucide-react';
-import { REITData, ScoreBreakdown } from '@/lib/reit-types';
+import { REITData, ScoreBreakdown, QUARTERLY_DISTRIBUTIONS } from '@/lib/reit-types';
 import { getHeatmapClass } from '@/lib/reit-scoring';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
