@@ -13,6 +13,9 @@ export function calculateInvITScores(
     const postTaxYield = computeInvITPostTaxYield(invit.taxBreakdown, invit.ttmDistribution, invit.cmp, taxRate);
     const divScore = (postTaxYield / gsecYield) * 100;
 
+    // ValueScore = ((NAV - CMP) / NAV) * 100
+    const valueScore = invit.nav > 0 ? ((invit.nav - invit.cmp) / invit.nav) * 100 : 0;
+
     // Safety Score = (Availability % * 0.5) + (min(ConcessionLife, 30) * 1.66)
     const safetyScore = (invit.availability * 0.5) + (Math.min(invit.concessionLife, 30) * 1.66);
 
@@ -20,11 +23,12 @@ export function calculateInvITScores(
     const sectorMultiplier = (invit.sector === 'Road/Toll') ? 1.2 : 0.8;
     const growthScore = (invit.growth1Y / maxGrowth1Y) * 100 * sectorMultiplier;
 
-    // Weighted final score
-    const totalWeight = weights.yield + weights.safety + weights.growth;
+    // Weighted final score (include value weight if available)
+    const valueWeight = weights.value || 0;
+    const totalWeight = weights.yield + weights.safety + weights.growth + valueWeight;
     if (totalWeight === 0) {
       return {
-        ...invit, divScore: r(divScore), safetyScore: r(safetyScore),
+        ...invit, divScore: r(divScore), valueScore: r(valueScore), safetyScore: r(safetyScore),
         growthScore: r(growthScore), postTaxYield: r(postTaxYield), finalScore: 0, rank: 0,
       };
     }
@@ -32,9 +36,11 @@ export function calculateInvITScores(
     const effYield = weights.yield / totalWeight;
     const effSafety = weights.safety / totalWeight;
     const effGrowth = weights.growth / totalWeight;
+    const effValue = valueWeight / totalWeight;
 
     const finalScore =
       divScore * effYield +
+      valueScore * effValue +
       safetyScore * effSafety +
       growthScore * effGrowth;
 
