@@ -18,26 +18,37 @@ import {
 import type { REITData, ScoreBreakdown } from '@/lib/reit-types';
 import type { InvITData, InvITScoreBreakdown } from '@/lib/invit-types';
 import { computeInvITPostTaxYield, computeInvITDivYield, LIVE_INVIT_DATA } from '@/lib/invit-types';
-import { ArrowUpDown, ArrowUp, ArrowDown, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { REITErrorBoundary } from '@/components/REITErrorBoundary';
 import { toast } from 'sonner';
+
+// Market caps in ₹ Crores (approximate, Mar 2026)
+const REIT_MARKET_CAPS: Record<string, number> = {
+  embassy: 35400,
+  mindspace: 26700,
+  brookfield: 19200,
+  nexus: 21500,
+};
+
+const INVIT_MARKET_CAPS: Record<string, number> = {
+  indigrid: 22400,
+  pginvit: 27100,
+  irbinvit: 7200,
+  nhit: 8600,
+  bhinvit: 4800,
+};
 
 interface UnifiedRow {
   id: string;
   name: string;
   ticker: string;
   assetType: 'REIT' | 'InvIT';
-  sector: string;
   cmp: number;
-  divYield: number;
   postTaxYield: number;
-  postTaxAlpha: number; // postTaxYield - gsecYield
+  ltv: number;
+  marketCap: number; // in ₹ Crores
   finalScore: number;
-  rank: number;
-  safetyScore: number;
-  growthScore: number;
   isLiveCMP: boolean;
 }
 
@@ -77,51 +88,42 @@ export default function MasterRanker() {
     const rows: UnifiedRow[] = [];
 
     for (const r of scoredReits) {
-      const postTaxYield = r.postTaxYield;
+      const reitBase = reitData.find(rd => rd.id === r.id);
       rows.push({
         id: r.id,
         name: r.name,
         ticker: r.ticker,
         assetType: 'REIT',
-        sector: r.sector,
         cmp: r.cmp,
-        divYield: r.divYield,
-        postTaxYield,
-        postTaxAlpha: postTaxYield - gsecYield,
+        postTaxYield: r.postTaxYield,
+        ltv: reitBase?.ltv ?? 0,
+        marketCap: REIT_MARKET_CAPS[r.id] ?? 0,
         finalScore: r.finalScore,
-        rank: 0,
-        safetyScore: r.safetyScore,
-        growthScore: r.growthScore,
         isLiveCMP: r.isLiveCMP,
       });
     }
 
     for (const i of scoredInvits) {
-      const postTaxYield = i.postTaxYield;
+      const invitBase = invitData.find(iv => iv.id === i.id);
       rows.push({
         id: i.id,
         name: i.name,
         ticker: i.ticker,
         assetType: 'InvIT',
-        sector: i.sector,
         cmp: i.cmp,
-        divYield: i.divYield,
-        postTaxYield,
-        postTaxAlpha: postTaxYield - gsecYield,
+        postTaxYield: i.postTaxYield,
+        ltv: invitBase?.ltv ? invitBase.ltv * 100 : 0, // InvIT LTV stored as decimal
+        marketCap: INVIT_MARKET_CAPS[i.id] ?? 0,
         finalScore: i.finalScore,
-        rank: 0,
-        safetyScore: i.safetyScore,
-        growthScore: i.growthScore,
         isLiveCMP: i.isLiveCMP,
       });
     }
 
-    // Rank by finalScore descending (strategy-weighted)
-    rows.sort((a, b) => b.finalScore - a.finalScore);
-    rows.forEach((r, i) => { r.rank = i + 1; });
+    // Sort by post-tax yield descending
+    rows.sort((a, b) => b.postTaxYield - a.postTaxYield);
 
     return rows;
-  }, [scoredReits, scoredInvits, gsecYield]);
+  }, [scoredReits, scoredInvits, gsecYield, reitData, invitData]);
 
   // Auto-fetch on mount
   useEffect(() => {
@@ -220,7 +222,7 @@ export default function MasterRanker() {
             </div>
           </div>
         ) : (
-          <MasterTable data={unifiedData} gsecYield={gsecYield} preset={preset} />
+          <MasterTable data={unifiedData} gsecYield={gsecYield} />
         )}
       </main>
     </div>
@@ -229,18 +231,17 @@ export default function MasterRanker() {
 
 // ── Unified Table ──
 
-function MasterTable({ data, gsecYield, preset }: { data: UnifiedRow[]; gsecYield: number; preset?: string }) {
-  const [sortKey, setSortKey] = useState<SortKey>('rank');
-  const [sortAsc, setSortAsc] = useState(true);
+function MasterTable({ data, gsecYield }: { data: UnifiedRow[]; gsecYield: number }) {
+  const [sortKey, setSortKey] = useState<SortKey>('postTaxYield');
+  const [sortAsc, setSortAsc] = useState(false);
 
-  const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string }[] = [
-    { key: 'rank', label: '#' },
-    { key: 'ticker', label: 'Name' },
+  const COLUMNS: { key: SortKey; label: string; align?: string }[] = [
+    { key: 'name', label: 'Asset Name' },
     { key: 'assetType', label: 'Type' },
-    { key: 'cmp', label: 'CMP (₹)', format: v => v > 0 ? `₹${v.toFixed(2)}` : '—' },
-    { key: 'postTaxYield', label: 'Post-Tax Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
-    { key: 'safetyScore', label: 'Safety', format: v => v.toFixed(1) },
-    { key: 'finalScore', label: 'Score', format: v => v.toFixed(1) },
+    { key: 'cmp', label: 'CMP (₹)', align: 'right' },
+    { key: 'postTaxYield', label: 'Post-Tax Yield', align: 'right' },
+    { key: 'ltv', label: 'LTV', align: 'right' },
+    { key: 'marketCap', label: 'Market Cap', align: 'right' },
   ];
 
   const sorted = useMemo(() => {
@@ -248,8 +249,6 @@ function MasterTable({ data, gsecYield, preset }: { data: UnifiedRow[]; gsecYiel
     copy.sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
-      if (aVal === null) return 1;
-      if (bVal === null) return -1;
       if (typeof aVal === 'string') return sortAsc ? aVal.localeCompare(bVal as string) : (bVal as string).localeCompare(aVal);
       return sortAsc ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
     });
@@ -258,80 +257,61 @@ function MasterTable({ data, gsecYield, preset }: { data: UnifiedRow[]; gsecYiel
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(!sortAsc);
-    else { setSortKey(key); setSortAsc(key === 'rank'); }
+    else { setSortKey(key); setSortAsc(false); }
   };
 
-  const STRATEGY_LABELS: Record<string, string> = {
-    income: 'Income Focus',
-    growth: 'Growth Focus',
-    riskAverse: 'Risk Averse',
-    custom: 'Custom',
+  const formatMarketCap = (v: number) => {
+    if (v <= 0) return '—';
+    return `₹${v.toLocaleString('en-IN')} Cr`;
   };
 
   return (
-    <TooltipProvider>
-      <div className="card-terminal overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs font-mono">
-            <thead>
-              <tr className="border-b border-border">
-                {COLUMNS.map(col => (
-                  <th
-                    key={col.key}
-                    onClick={() => handleSort(col.key)}
-                    className="px-3 py-2.5 text-left text-[10px] text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap select-none"
-                  >
-                    <div className="flex items-center gap-1">
-                      {col.label}
-                      {col.key === 'finalScore' && preset && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="text-terminal-amber cursor-help"><Info className="h-2.5 w-2.5" /></span>
-                          </TooltipTrigger>
-                          <TooltipContent className="text-xs font-mono">
-                            Ranking weighted for {STRATEGY_LABELS[preset] || preset} strategy
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                      {sortKey === col.key ? (
-                        sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                      ) : (
-                        <ArrowUpDown className="h-3 w-3 opacity-30" />
-                      )}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map(row => (
-                <REITErrorBoundary key={row.id} fallback={
-                  <tr className="border-b border-border/50">
-                    <td colSpan={COLUMNS.length} className="px-3 py-2.5 text-center text-destructive text-xs font-mono">⚠ Render error</td>
-                  </tr>
-                }>
-                  <MasterRow row={row} gsecYield={gsecYield} />
-                </REITErrorBoundary>
+    <div className="card-terminal overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs font-mono">
+          <thead>
+            <tr className="border-b border-border">
+              {COLUMNS.map(col => (
+                <th
+                  key={col.key}
+                  onClick={() => handleSort(col.key)}
+                  className={`px-3 py-2.5 text-[10px] text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors whitespace-nowrap select-none ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                >
+                  <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : ''}`}>
+                    {col.label}
+                    {sortKey === col.key ? (
+                      sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                    ) : (
+                      <ArrowUpDown className="h-3 w-3 opacity-30" />
+                    )}
+                  </div>
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(row => (
+              <REITErrorBoundary key={row.id} fallback={
+                <tr className="border-b border-border/50">
+                  <td colSpan={COLUMNS.length} className="px-3 py-2.5 text-center text-destructive text-xs font-mono">⚠ Render error</td>
+                </tr>
+              }>
+                <MasterRow row={row} formatMarketCap={formatMarketCap} />
+              </REITErrorBoundary>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
 
-function MasterRow({ row, gsecYield }: { row: UnifiedRow; gsecYield: number }) {
+function MasterRow({ row, formatMarketCap }: { row: UnifiedRow; formatMarketCap: (v: number) => string }) {
   const isReit = row.assetType === 'REIT';
   const rowBg = isReit ? 'hover:bg-terminal-blue/5' : 'hover:bg-teal-500/5';
 
   return (
     <tr className={`border-b border-border/50 transition-colors ${rowBg}`}>
-      <td className="px-3 py-2.5">
-        <span className={`font-bold text-sm ${row.rank <= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
-          {row.cmp > 0 ? row.rank : '--'}
-        </span>
-      </td>
       <td className="px-3 py-2.5">
         <div className="font-semibold text-foreground text-xs">{row.ticker}</div>
         <div className="text-[10px] text-muted-foreground">{row.name}</div>
@@ -345,10 +325,14 @@ function MasterRow({ row, gsecYield }: { row: UnifiedRow; gsecYield: number }) {
           {row.assetType}
         </span>
       </td>
-      <td className="px-3 py-2.5 text-foreground">{row.cmp > 0 ? `₹${row.cmp.toFixed(2)}` : '—'}</td>
-      <td className="px-3 py-2.5 text-foreground">{row.postTaxYield > 0 ? `${row.postTaxYield.toFixed(2)}%` : '—'}</td>
-      <td className="px-3 py-2.5 text-foreground">{row.safetyScore.toFixed(1)}</td>
-      <td className="px-3 py-2.5 font-bold text-foreground">{row.cmp > 0 ? row.finalScore.toFixed(1) : '--'}</td>
+      <td className="px-3 py-2.5 text-right text-foreground">{row.cmp > 0 ? `₹${row.cmp.toFixed(2)}` : '—'}</td>
+      <td className="px-3 py-2.5 text-right">
+        <span className={`font-bold ${row.postTaxYield > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+          {row.postTaxYield > 0 ? `${row.postTaxYield.toFixed(2)}%` : '—'}
+        </span>
+      </td>
+      <td className="px-3 py-2.5 text-right text-foreground">{row.ltv > 0 ? `${row.ltv.toFixed(1)}%` : '—'}</td>
+      <td className="px-3 py-2.5 text-right text-foreground">{formatMarketCap(row.marketCap)}</td>
     </tr>
   );
 }
