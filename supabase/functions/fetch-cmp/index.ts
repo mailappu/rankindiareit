@@ -8,6 +8,12 @@ const TICKERS: Record<string, string> = {
   mindspace: 'MINDSPACE',
   brookfield: 'BIRET',
   nexus: 'NXST',
+  // InvITs
+  indigrid: 'INDIGRID',
+  pginvit: 'PGINVIT',
+  irbinvit: 'IRBINVIT',
+  nhit: 'NHIT',
+  bhinvit: 'BHINVIT',
 };
 
 const BSE_SCRIP_CODES: Record<string, string> = {
@@ -15,6 +21,12 @@ const BSE_SCRIP_CODES: Record<string, string> = {
   mindspace: '543217',
   brookfield: '543261',
   nexus: '543913',
+  // InvITs
+  indigrid: '540565',
+  pginvit: '543620',
+  irbinvit: '541956',
+  nhit: '543985',
+  bhinvit: '544173',
 };
 
 const FALLBACK_CMP: Record<string, number> = {
@@ -22,6 +34,12 @@ const FALLBACK_CMP: Record<string, number> = {
   mindspace: 449.59,
   brookfield: 319.79,
   nexus: 152.60,
+  // InvITs - will be populated by first BSE fetch
+  indigrid: 0,
+  pginvit: 0,
+  irbinvit: 0,
+  nhit: 0,
+  bhinvit: 0,
 };
 
 // Fallback CAGR values (verified Mar 21, 2026)
@@ -30,6 +48,12 @@ const FALLBACK_CAGR: Record<string, { growth1Y: number; growth3Y: number | null;
   mindspace:  { growth1Y: 26.9, growth3Y: 17.6, growth5Y: 12.8 },
   brookfield: { growth1Y: 10.9, growth3Y: 5.3,  growth5Y: null },
   nexus:      { growth1Y: 21.1, growth3Y: null,  growth5Y: null },
+  // InvITs
+  indigrid:   { growth1Y: 0, growth3Y: null, growth5Y: null },
+  pginvit:    { growth1Y: 0, growth3Y: null, growth5Y: null },
+  irbinvit:   { growth1Y: 0, growth3Y: null, growth5Y: null },
+  nhit:       { growth1Y: 0, growth3Y: null, growth5Y: null },
+  bhinvit:    { growth1Y: 0, growth3Y: null, growth5Y: null },
 };
 
 interface PriceResult {
