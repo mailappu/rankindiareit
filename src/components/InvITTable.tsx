@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, Info, WifiOff, Radio, AlertTriangle } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, FileText, Info, WifiOff, Radio, AlertTriangle } from 'lucide-react';
 import type { InvITData, InvITScoreBreakdown } from '@/lib/invit-types';
+import { INVIT_QUARTERLY_DISTRIBUTIONS } from '@/lib/invit-types';
 import { getHeatmapClass } from '@/lib/reit-scoring';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
