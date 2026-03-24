@@ -10,6 +10,13 @@ const TICKERS: Record<string, string> = {
   nexus: 'NXST',
 };
 
+const BSE_SCRIP_CODES: Record<string, string> = {
+  embassy: '542602',
+  mindspace: '543217',
+  brookfield: '543261',
+  nexus: '543913',
+};
+
 const FALLBACK_CMP: Record<string, number> = {
   embassy: 417.00,
   mindspace: 449.59,
@@ -287,12 +294,43 @@ async function fetchFromGoogleFinance(symbol: string): Promise<number | null> {
   }
 }
 
+/**
+ * Primary source: BSE India equity quote API
+ */
+async function fetchFromBSE(scripCode: string): Promise<number | null> {
+  try {
+    const url = `https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Ession_id=&scripcode=${scripCode}&seression_id=`;
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': 'https://www.bseindia.com/',
+        'Origin': 'https://www.bseindia.com',
+      },
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const header = data?.Header;
+    const priceStr = header?.LTP || header?.CurrRate?.CurrPrice;
+    if (priceStr) {
+      const price = parseFloat(String(priceStr).replace(/,/g, ''));
+      if (price > 0 && price < 10000) return price;
+    }
+    return null;
+  } catch (err) {
+    console.warn(`BSE failed for scrip ${scripCode}:`, err);
+    return null;
+  }
+}
+
 async function fetchPrice(reitId: string, symbol: string, nseCookies: string): Promise<PriceResult> {
   const now = new Date().toISOString();
   const fallbackCagr = FALLBACK_CAGR[reitId] || { growth1Y: 0, growth3Y: null, growth5Y: null };
+  const scripCode = BSE_SCRIP_CODES[reitId];
 
-  // Fetch current price: NSE (with shared cookies) → Yahoo → Google → Fallback
+  // Fetch current price: BSE → NSE → Yahoo → Google → Fallback
   const sources = [
+    { name: 'BSE', fn: () => fetchFromBSE(scripCode) },
     { name: 'NSE', fn: () => fetchFromNSE(symbol, nseCookies) },
     { name: 'Yahoo', fn: () => fetchFromYahoo(symbol) },
     { name: 'Google', fn: () => fetchFromGoogleFinance(symbol) },
