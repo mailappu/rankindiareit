@@ -147,6 +147,23 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {invit.latestPdfUrl && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={invit.latestPdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-terminal-green hover:text-terminal-green/80 transition-colors"
+                        >
+                          <FileText className="h-3 w-3" />
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-[10px] font-mono">
+                        <p className="font-semibold">View Latest Filing</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                   <a href={invit.irUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-terminal-blue transition-colors">
                     <ExternalLink className="h-3 w-3" />
                   </a>
@@ -332,8 +349,22 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
                         <Info className="h-2.5 w-2.5" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-56 bg-card border-border text-xs font-mono p-3 space-y-1.5" side="top">
+                    <PopoverContent className="w-64 bg-card border-border text-xs font-mono p-3 space-y-1.5" side="top">
                       <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">Yield Breakdown</div>
+                      {(() => {
+                        const quarters = INVIT_QUARTERLY_DISTRIBUTIONS[invit.id] || [];
+                        return quarters.length > 0 ? (
+                          <div className="space-y-0.5 pb-1 border-b border-border mb-1">
+                            <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Quarterly Distributions</div>
+                            {quarters.map((q) => (
+                              <div key={q.quarter} className="flex justify-between">
+                                <span className="text-muted-foreground">{q.quarter}</span>
+                                <span className="text-foreground">₹{q.amount.toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null;
+                      })()}
                       <div className="flex justify-between font-semibold">
                         <span className="text-muted-foreground">TTM DPU</span>
                         <span className="text-foreground">₹{invit.ttmDistribution}</span>
