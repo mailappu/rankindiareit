@@ -641,16 +641,6 @@ export function REITTable({ data, gsecYield, taxRate, preset, sourceStatus, disc
                           </TooltipContent>
                         </Tooltip>
                       )}
-                      {col.key === 'finalScore' && preset && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="text-primary cursor-help text-[8px]">({STRATEGY_LABELS[preset] || preset})</span>
-                          </TooltipTrigger>
-                          <TooltipContent className="text-xs font-mono">
-                            Ranking weighted for {STRATEGY_LABELS[preset] || preset} strategy
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
                       {sortKey === col.key ? (
                         sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
                       ) : (
