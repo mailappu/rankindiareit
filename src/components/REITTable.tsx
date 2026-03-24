@@ -352,7 +352,7 @@ function REITRow({
           return (
             <td key={col.key} className={`px-3 py-2.5 ${heatClass}`}>
               <div className="flex items-center gap-1">
-                <span className="text-foreground">{reit.postTaxYield.toFixed(2)}%</span>
+                <span className={reit.postTaxYield > gsecYield ? 'text-terminal-green' : 'text-foreground'}>{reit.postTaxYield.toFixed(2)}%</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
