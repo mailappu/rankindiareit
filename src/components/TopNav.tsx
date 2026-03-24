@@ -50,9 +50,12 @@ export function TopNav({
     <TooltipProvider>
       <nav className="border-b border-border px-3 sm:px-4 py-2 flex items-center gap-2.5 overflow-x-auto">
         {/* Brand */}
-        <div className="flex items-center gap-1.5 mr-2 shrink-0">
-          <BarChart3 className="h-4 w-4 text-primary" />
-          <span className="text-sm font-mono font-bold text-foreground">RealInfra</span>
+        <div className="flex flex-col mr-2 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <BarChart3 className="h-4 w-4 text-primary" />
+            <span className="text-sm font-mono font-bold text-foreground">RealInfra</span>
+          </div>
+          <span className="text-[8px] font-mono text-muted-foreground leading-tight">AI-Powered Yield Analysis & Risk Benchmarking</span>
         </div>
 
         {/* Nav Links */}
