@@ -14,6 +14,10 @@ import {
   StrategyPreset,
   StrategyWeights,
   TaxBracket,
+  TTM_DISTRIBUTIONS,
+  REIT_TAX_BREAKDOWNS,
+  computePostTaxYield,
+  computeDivYield,
 } from '@/lib/reit-types';
 import { toast } from 'sonner';
 
