@@ -220,6 +220,23 @@ async function fetchXBRLContent(url: string): Promise<{
           /<[^:]*:?NetDebtToGAV[^>]*>([^<]+)/i,
           /<[^:]*:?LTV[^>]*>([^<]+)/i,
         ],
+        // InvIT-specific tags
+        assetAvailability: [
+          /<[^:]*:?AssetAvailability[^>]*>([^<]+)/i,
+          /<[^:]*:?Availability[^>]*>([^<]+)/i,
+          /<[^:]*:?PlantAvailability[^>]*>([^<]+)/i,
+          /<[^:]*:?SystemAvailability[^>]*>([^<]+)/i,
+        ],
+        concessionLife: [
+          /<[^:]*:?RemainingConcessionLife[^>]*>([^<]+)/i,
+          /<[^:]*:?ConcessionPeriod[^>]*>([^<]+)/i,
+          /<[^:]*:?RemainingLife[^>]*>([^<]+)/i,
+          /<[^:]*:?UsefulLife[^>]*>([^<]+)/i,
+        ],
+        tollCollection: [
+          /<[^:]*:?TollCollection[^>]*>([^<]+)/i,
+          /<[^:]*:?TollRevenue[^>]*>([^<]+)/i,
+        ],
       };
 
       for (const [key, patterns] of Object.entries(tagPatterns)) {
