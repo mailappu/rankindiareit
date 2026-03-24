@@ -282,9 +282,9 @@ function REITRow({
                     <span className="text-[8px] px-1 py-0 rounded bg-muted text-muted-foreground font-mono">
                       {reit.ltv}% LTV
                     </span>
-                    <span className="text-[8px] px-1 py-0 rounded bg-muted text-muted-foreground font-mono leading-tight inline-flex flex-col items-center">
+                    <span className="text-[8px] px-1 py-0 rounded bg-muted text-foreground font-mono leading-tight inline-flex flex-col items-center">
                       <span>{reit.pipeline}M sqft</span>
-                      <span className="text-[7px] opacity-70">Pipeline</span>
+                      <span className="text-[7px] text-muted-foreground">Pipeline</span>
                     </span>
                     <span className={`text-[8px] px-1 py-0 rounded font-mono ${
                       reit.safetyScore >= 80

@@ -1,5 +1,5 @@
 import { NavLink as RouterNavLink } from 'react-router-dom';
-import { BarChart3, Building2, Zap, Trophy, BookOpen, RefreshCw, AlertTriangle, FileWarning } from 'lucide-react';
+import { BarChart3, Building2, Zap, Trophy, BookOpen, HelpCircle, RefreshCw, AlertTriangle, FileWarning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -70,6 +70,10 @@ export function TopNav({
         <RouterNavLink to="/invits" className={linkClass}>
           <Zap className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">InvITs</span>
+        </RouterNavLink>
+        <RouterNavLink to="/terminology" className={linkClass}>
+          <HelpCircle className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Terminology</span>
         </RouterNavLink>
         <RouterNavLink to="/about" className={linkClass}>
           <BookOpen className="h-3.5 w-3.5" />
