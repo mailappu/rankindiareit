@@ -108,8 +108,8 @@ function buildInvITData(
   cmp: number, nav: number, listingPrice: number, listingDate: string,
   ttmDistribution: number,
   taxBreakdown: InvITTaxBreakdown,
-  availability: number, concessionLife: number, ltv: number, // LTV as percentage (e.g. 56 = 56%)
-  growth1Y: number, irUrl: string
+  availability: number, concessionLife: number, ltv: number,
+  growth1Y: number, irUrl: string, latestPdfUrl: string | null = null
 ): InvITData {
   const divYield = computeInvITDivYield(ttmDistribution, cmp);
   const age = (new Date(CURRENT_DATE).getTime() - new Date(listingDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000);
@@ -128,7 +128,7 @@ function buildInvITData(
     sinceListing: Math.round(sinceListing * 10) / 10,
     availability, concessionLife, ltv: ltvValidation.ltv,
     lastUpdated: CURRENT_DATE,
-    irUrl,
+    irUrl, latestPdfUrl,
     isLiveCMP: false,
     cmpCachedAt: null,
     dataSource: 'xbrl',
