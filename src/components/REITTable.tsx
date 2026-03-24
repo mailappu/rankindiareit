@@ -207,15 +207,31 @@ function REITRow({
             <td key={col.key} className={`px-3 py-2.5 ${heatClass}`}>
               <div className="flex items-center gap-1">
                 <span className="text-foreground">{reit.divYield.toFixed(2)}%</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-2.5 w-2.5 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-[10px] font-mono max-w-[200px]">
-                    <p>TTM DPU: ₹{reit.ttmDistribution} / CMP: ₹{reit.cmp.toFixed(2)}</p>
-                    <p className="text-muted-foreground">Source: Q3 FY26 distributions</p>
-                  </TooltipContent>
-                </Tooltip>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 bg-card border-border text-xs font-mono p-3 space-y-1.5" side="top">
+                    <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">
+                      Yield Breakdown
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">TTM DPU</span>
+                      <span className="text-foreground">₹{reit.ttmDistribution}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">CMP</span>
+                      <span className="text-foreground">₹{reit.cmp.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="text-muted-foreground">Yield</span>
+                      <span className="text-terminal-green font-semibold">{reit.divYield.toFixed(2)}%</span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground pt-1">Source: Q3 FY26 distributions</p>
+                  </PopoverContent>
+                </Popover>
               </div>
             </td>
           );
