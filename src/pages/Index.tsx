@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { TopNav } from '@/components/TopNav';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
-import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
@@ -356,9 +355,6 @@ export default function Index() {
         />
 
         <REITTable data={scoredData} gsecYield={gsecYield} taxRate={taxRate} preset={preset} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
-
-        <TerminologyCard />
-
       </main>
     </div>
   );
