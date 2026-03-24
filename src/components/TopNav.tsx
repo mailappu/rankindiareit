@@ -100,18 +100,21 @@ export function TopNav({
 
             {/* Tax Selector */}
             {taxRate !== undefined && onTaxRateChange && (
-              <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v) as TaxBracket)}>
-                <SelectTrigger className="h-6 w-[70px] text-[9px] font-mono border-border bg-secondary/50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TAX_BRACKETS.map(rate => (
-                    <SelectItem key={rate} value={String(rate)} className="text-xs font-mono">
-                      {rate === 0 ? '0%' : rate === 31.2 ? '31.2% HNI' : `${rate}%`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] font-mono text-muted-foreground">Tax Slab</span>
+                <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v) as TaxBracket)}>
+                  <SelectTrigger className="h-6 w-[80px] text-[9px] font-mono border-border bg-secondary/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TAX_BRACKETS.map(rate => (
+                      <SelectItem key={rate} value={String(rate)} className="text-xs font-mono">
+                        {rate === 0 ? '0%' : rate === 31.2 ? '31.2% HNI' : `${rate}%`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
 
             {/* Error Log */}
@@ -155,7 +158,7 @@ export function TopNav({
                 className="h-6 font-mono text-[9px] gap-1 border-primary/30 text-primary hover:bg-primary/10 px-1.5"
               >
                 <RefreshCw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? '...' : 'SYNC BSE'}
+                {isSyncing ? '...' : 'SYNC'}
               </Button>
               {lastSynced && (
                 <span className={`text-[7px] font-mono ${syncFailed ? 'text-destructive' : 'text-muted-foreground'}`}>
