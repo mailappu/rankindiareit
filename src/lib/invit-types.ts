@@ -126,23 +126,23 @@ const rawInvITData: InvITData[] = [
   ),
   // PGInvIT: TTM = Q4 FY25 (₹3.0) + Q1 FY26 (₹3.0) + Q2 FY26 (₹3.0) + Q3 FY26 (₹3.0) = ₹12.0
   buildInvITData('pginvit', 'PowerGrid Infrastructure InvIT', 'PGINVIT', 'Transmission',
-    155.50, 130, 100, '2021-05-17',
+    94.20, 105, 100, '2021-05-17',
     12.0,
     { interest: 0.60, dividend: 0.0, repaymentOfDebt: 0.40 },
     98.0, 30, 0.15,
-    12.5, 'https://www.pginvit.in/investor-relations/'
+    17.7, 'https://www.pginvit.in/investor-relations/'
   ),
   // IRB InvIT: Q3 FY26 DPU ₹1.50, 9M FY26 cumulative ₹5.00 → TTM ~₹6.50
   buildInvITData('irbinvit', 'IRB InvIT Fund', 'IRBINVIT', 'Road/Toll',
-    61.79, 68, 100, '2017-05-15',
+    118.65, 68, 100, '2017-05-15',
     6.50,
     { interest: 0.70, dividend: 0.0, repaymentOfDebt: 0.30 },
     95.0, 18, 0.35,
-    -5.2, 'https://www.irbinvit.com/investor-relations/'
+    117.1, 'https://www.irbinvit.com/investor-relations/'
   ),
   // NHIT: TTM (Jan-Mar'25: 2.047 + Q1 FY26: 2.984 + Q2: 2.471 + Q3: 2.744) = ₹10.25
   buildInvITData('nhit', 'National Highways Infra Trust', 'NHIT', 'Road/Toll',
-    155.00, 152, 100, '2021-11-30',
+    205.80, 152, 100, '2021-11-30',
     10.25,
     { interest: 0.97, dividend: 0.0, repaymentOfDebt: 0.03 },
     97.0, 22, 0.20,
@@ -150,11 +150,11 @@ const rawInvITData: InvITData[] = [
   ),
   // BHINVIT: Newer listing, estimated TTM ~₹8.50
   buildInvITData('bhinvit', 'Bharat Highways InvIT', 'BHINVIT', 'Road/Toll',
-    122.33, 118, 100, '2024-09-12',
+    113.00, 118, 100, '2024-09-12',
     8.50,
     { interest: 0.80, dividend: 0.0, repaymentOfDebt: 0.20 },
     96.0, 20, 0.25,
-    22.3, 'https://www.bharathighwaysinvit.com/'
+    13.0, 'https://www.bharathighwaysinvit.com/'
   ),
 ];
 
