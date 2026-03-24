@@ -222,7 +222,7 @@ export default function MasterRanker() {
             </div>
           </div>
         ) : (
-          <MasterTable data={unifiedData} gsecYield={gsecYield} preset={preset} />
+          <MasterTable data={unifiedData} gsecYield={gsecYield} />
         )}
       </main>
     </div>
