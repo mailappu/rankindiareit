@@ -29,6 +29,7 @@ export interface InvITData {
   ltv: number;
   lastUpdated: string;
   irUrl: string;
+  latestPdfUrl: string | null;
   isLiveCMP: boolean;
   cmpCachedAt: string | null;
   // Dynamic XBRL state
