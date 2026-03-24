@@ -100,8 +100,7 @@ export function TopNav({
 
             {/* Tax Selector */}
             {taxRate !== undefined && onTaxRateChange && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono text-muted-foreground">Tax Slab</span>
+              <div className="flex flex-col items-center gap-0">
                 <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v) as TaxBracket)}>
                   <SelectTrigger className="h-7 w-[85px] text-[11px] font-mono border-border bg-secondary/50">
                     <SelectValue />
@@ -114,6 +113,7 @@ export function TopNav({
                     ))}
                   </SelectContent>
                 </Select>
+                <span className="text-[8px] font-mono text-muted-foreground">Tax Slab</span>
               </div>
             )}
 
