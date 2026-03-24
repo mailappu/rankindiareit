@@ -1,4 +1,4 @@
-import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3, Info } from 'lucide-react';
+import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3, Info, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -19,9 +19,12 @@ interface DashboardHeaderProps {
   syncErrors: SyncError[];
   taxRate: TaxBracket;
   onTaxRateChange: (rate: TaxBracket) => void;
+  onRefreshData?: () => void;
+  isRefreshingData?: boolean;
+  lastDataSync?: string | null;
 }
 
-export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors, taxRate, onTaxRateChange }: DashboardHeaderProps) {
+export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed, isSyncing, onSync, provenanceBadge, syncErrors, taxRate, onTaxRateChange, onRefreshData, isRefreshingData, lastDataSync }: DashboardHeaderProps) {
   const pulseColor = gsecStatus === 'live'
     ? 'bg-terminal-green'
     : gsecStatus === 'cached'
