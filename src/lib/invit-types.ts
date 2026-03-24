@@ -39,6 +39,7 @@ export interface InvITData {
 
 export interface InvITScoreBreakdown {
   divScore: number;
+  valueScore: number;
   safetyScore: number;
   growthScore: number;
   postTaxYield: number;
