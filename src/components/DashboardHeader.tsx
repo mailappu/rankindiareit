@@ -1,4 +1,4 @@
-import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3, Info, Database } from 'lucide-react';
+import { RefreshCw, ShieldCheck, AlertTriangle, FileWarning, BadgeCheck, BarChart3, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
