@@ -1,9 +1,9 @@
 import { NavLink as RouterNavLink } from 'react-router-dom';
-import { BarChart3, Building2, Zap, Trophy, BookOpen, RefreshCw, AlertTriangle, FileWarning, Info } from 'lucide-react';
+import { BarChart3, Building2, Zap, Trophy, BookOpen, RefreshCw, AlertTriangle, FileWarning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { GSecStatus } from '@/lib/gsec-service';
 import type { SyncError } from '@/lib/sync-engine';
 import type { TaxBracket } from '@/lib/reit-types';
@@ -52,7 +52,7 @@ export function TopNav({
         {/* Brand */}
         <div className="flex items-center gap-1.5 mr-2 shrink-0">
           <BarChart3 className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-mono font-bold text-foreground">RankIndia</span>
+          <span className="text-xs font-mono font-bold text-foreground">RealInfra</span>
         </div>
 
         {/* Nav Links */}
@@ -79,28 +79,23 @@ export function TopNav({
         {/* Dashboard controls — right side */}
         {hasDashboard && (
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* G-Sec Benchmark */}
-            <div className="flex items-center gap-1">
-              <span className="relative flex h-1.5 w-1.5 shrink-0">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
-                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${pulseColor}`} />
-              </span>
-              <span className="text-foreground font-bold text-xs font-mono">{gsecYield!.toFixed(2)}%</span>
-              <span className={`text-[7px] px-0.5 py-0 rounded uppercase ${
-                gsecStatus === 'live'
-                  ? 'bg-terminal-green/15 text-terminal-green'
-                  : gsecStatus === 'cached'
-                    ? 'bg-terminal-amber/15 text-terminal-amber'
-                    : 'bg-terminal-red/15 text-terminal-red'
-              }`}>{pulseLabel}</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-2.5 w-2.5 text-muted-foreground hover:text-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
-                  <p>India 10Y G-Sec — the risk-free benchmark rate.</p>
-                </TooltipContent>
-              </Tooltip>
+            {/* G-Sec Benchmark - Vertical Stack */}
+            <div className="flex flex-col items-end gap-0">
+              <div className="flex items-center gap-1">
+                <span className="relative flex h-1.5 w-1.5 shrink-0">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
+                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${pulseColor}`} />
+                </span>
+                <span className="text-foreground font-bold text-sm font-mono">{gsecYield!.toFixed(2)}%</span>
+                <span className={`text-[7px] px-0.5 py-0 rounded uppercase ${
+                  gsecStatus === 'live'
+                    ? 'bg-terminal-green/15 text-terminal-green'
+                    : gsecStatus === 'cached'
+                      ? 'bg-terminal-amber/15 text-terminal-amber'
+                      : 'bg-terminal-red/15 text-terminal-red'
+                }`}>{pulseLabel}</span>
+              </div>
+              <span className="text-[8px] font-mono text-muted-foreground">India 10Y G-Sec</span>
             </div>
 
             {/* Tax Selector */}
@@ -150,22 +145,24 @@ export function TopNav({
               </Dialog>
             )}
 
-            {/* Sync Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSync}
-              disabled={isSyncing}
-              className="h-6 font-mono text-[9px] gap-1 border-primary/30 text-primary hover:bg-primary/10 px-1.5"
-            >
-              <RefreshCw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? '...' : 'SYNC'}
-            </Button>
-            {lastSynced && (
-              <span className={`text-[7px] font-mono ${syncFailed ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {lastSynced}
-              </span>
-            )}
+            {/* Sync Button - Vertical Stack */}
+            <div className="flex flex-col items-end gap-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSync}
+                disabled={isSyncing}
+                className="h-6 font-mono text-[9px] gap-1 border-primary/30 text-primary hover:bg-primary/10 px-1.5"
+              >
+                <RefreshCw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? '...' : 'SYNC BSE'}
+              </Button>
+              {lastSynced && (
+                <span className={`text-[7px] font-mono ${syncFailed ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  Last: {lastSynced}
+                </span>
+              )}
+            </div>
           </div>
         )}
       </nav>

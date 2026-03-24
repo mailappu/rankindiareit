@@ -116,8 +116,8 @@ export default function MasterRanker() {
       });
     }
 
-    // Rank by postTaxAlpha descending
-    rows.sort((a, b) => b.postTaxAlpha - a.postTaxAlpha);
+    // Rank by finalScore descending (strategy-weighted)
+    rows.sort((a, b) => b.finalScore - a.finalScore);
     rows.forEach((r, i) => { r.rank = i + 1; });
 
     return rows;
@@ -237,13 +237,9 @@ function MasterTable({ data, gsecYield, preset }: { data: UnifiedRow[]; gsecYiel
     { key: 'rank', label: '#' },
     { key: 'ticker', label: 'Name' },
     { key: 'assetType', label: 'Type' },
-    { key: 'sector', label: 'Sector' },
     { key: 'cmp', label: 'CMP (₹)', format: v => v > 0 ? `₹${v.toFixed(2)}` : '—' },
-    { key: 'divYield', label: 'Div Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
     { key: 'postTaxYield', label: 'Post-Tax Yield', format: v => v > 0 ? `${v.toFixed(2)}%` : '—' },
-    { key: 'postTaxAlpha', label: 'Alpha vs G-Sec', format: v => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
     { key: 'safetyScore', label: 'Safety', format: v => v.toFixed(1) },
-    { key: 'growthScore', label: 'Growth', format: v => v.toFixed(1) },
     { key: 'finalScore', label: 'Score', format: v => v.toFixed(1) },
   ];
 
@@ -331,18 +327,15 @@ function MasterRow({ row, gsecYield }: { row: UnifiedRow; gsecYield: number }) {
 
   return (
     <tr className={`border-b border-border/50 transition-colors ${rowBg}`}>
-      {/* Rank */}
       <td className="px-3 py-2.5">
         <span className={`font-bold text-sm ${row.rank <= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
           {row.cmp > 0 ? row.rank : '--'}
         </span>
       </td>
-      {/* Name */}
       <td className="px-3 py-2.5">
         <div className="font-semibold text-foreground text-xs">{row.ticker}</div>
         <div className="text-[10px] text-muted-foreground">{row.name}</div>
       </td>
-      {/* Asset Type */}
       <td className="px-3 py-2.5">
         <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${
           isReit
@@ -352,25 +345,9 @@ function MasterRow({ row, gsecYield }: { row: UnifiedRow; gsecYield: number }) {
           {row.assetType}
         </span>
       </td>
-      {/* Sector */}
-      <td className="px-3 py-2.5 text-muted-foreground">{row.sector}</td>
-      {/* CMP */}
       <td className="px-3 py-2.5 text-foreground">{row.cmp > 0 ? `₹${row.cmp.toFixed(2)}` : '—'}</td>
-      {/* Div Yield */}
-      <td className="px-3 py-2.5 text-foreground">{row.divYield > 0 ? `${row.divYield.toFixed(2)}%` : '—'}</td>
-      {/* Post-Tax Yield */}
       <td className="px-3 py-2.5 text-foreground">{row.postTaxYield > 0 ? `${row.postTaxYield.toFixed(2)}%` : '—'}</td>
-      {/* Alpha */}
-      <td className="px-3 py-2.5">
-        <span className={row.postTaxAlpha >= 0 ? 'text-primary font-semibold' : 'text-destructive font-semibold'}>
-          {row.cmp > 0 ? `${row.postTaxAlpha >= 0 ? '+' : ''}${row.postTaxAlpha.toFixed(2)}%` : '—'}
-        </span>
-      </td>
-      {/* Safety */}
       <td className="px-3 py-2.5 text-foreground">{row.safetyScore.toFixed(1)}</td>
-      {/* Growth */}
-      <td className="px-3 py-2.5 text-foreground">{row.growthScore.toFixed(1)}</td>
-      {/* Score */}
       <td className="px-3 py-2.5 font-bold text-foreground">{row.cmp > 0 ? row.finalScore.toFixed(1) : '--'}</td>
     </tr>
   );
