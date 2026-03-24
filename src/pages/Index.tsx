@@ -7,6 +7,7 @@ import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
+import { discoverREITData, getCachedDiscovery, type DataDiscoveryResult } from '@/lib/data-discovery-service';
 import {
   LIVE_REIT_DATA,
   DEFAULT_GSEC_YIELD,
