@@ -66,8 +66,12 @@ export default function Index() {
     setProvenanceBadge(getProvenanceBadge());
   }, []);
 
-  // ── Audit v2026.3 ──
+  // ── Audit v2026.3 (runs once per session) ──
   useEffect(() => {
+    const auditKey = 'audit_v2026_3_done';
+    if (sessionStorage.getItem(auditKey)) return;
+    sessionStorage.setItem(auditKey, '1');
+
     console.log('──── AUDIT v2026.3 START ────');
 
     // 1. Benchmark
@@ -121,9 +125,6 @@ export default function Index() {
     }
 
     console.log('──── AUDIT v2026.3 COMPLETE ────');
-    toast.success('Audit Complete', {
-      description: 'All REIT calculations verified against Q3 FY26 data and 6.84% G-Sec.',
-    });
   }, [reitData]);
 
   const handleSync = useCallback(async () => {
