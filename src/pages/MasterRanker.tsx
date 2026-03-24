@@ -116,8 +116,8 @@ export default function MasterRanker() {
       });
     }
 
-    // Rank by postTaxAlpha descending
-    rows.sort((a, b) => b.postTaxAlpha - a.postTaxAlpha);
+    // Rank by finalScore descending (strategy-weighted)
+    rows.sort((a, b) => b.finalScore - a.finalScore);
     rows.forEach((r, i) => { r.rank = i + 1; });
 
     return rows;
