@@ -296,7 +296,7 @@ function MasterTable({ data, gsecYield }: { data: UnifiedRow[]; gsecYield: numbe
                   <td colSpan={COLUMNS.length} className="px-3 py-2.5 text-center text-destructive text-xs font-mono">⚠ Render error</td>
                 </tr>
               }>
-                <MasterRow row={row} formatMarketCap={formatMarketCap} />
+                <MasterRow row={row} formatMarketCap={formatMarketCap} gsecYield={gsecYield} />
               </REITErrorBoundary>
             ))}
           </tbody>
@@ -306,9 +306,10 @@ function MasterTable({ data, gsecYield }: { data: UnifiedRow[]; gsecYield: numbe
   );
 }
 
-function MasterRow({ row, formatMarketCap }: { row: UnifiedRow; formatMarketCap: (v: number) => string }) {
+function MasterRow({ row, formatMarketCap, gsecYield }: { row: UnifiedRow; formatMarketCap: (v: number) => string; gsecYield: number }) {
   const isReit = row.assetType === 'REIT';
   const rowBg = isReit ? 'hover:bg-terminal-blue/5' : 'hover:bg-teal-500/5';
+  const yieldColor = row.postTaxYield > gsecYield ? 'text-terminal-green' : 'text-foreground';
 
   return (
     <tr className={`border-b border-border/50 transition-colors ${rowBg}`}>
@@ -327,7 +328,7 @@ function MasterRow({ row, formatMarketCap }: { row: UnifiedRow; formatMarketCap:
       </td>
       <td className="px-3 py-2.5 text-right text-foreground">{row.cmp > 0 ? `₹${row.cmp.toFixed(2)}` : '—'}</td>
       <td className="px-3 py-2.5 text-right">
-        <span className={`font-bold ${row.postTaxYield > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+        <span className={`font-bold ${row.postTaxYield > 0 ? yieldColor : 'text-muted-foreground'}`}>
           {row.postTaxYield > 0 ? `${row.postTaxYield.toFixed(2)}%` : '—'}
         </span>
       </td>

@@ -213,6 +213,17 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
           );
         }
 
+        if (col.key === 'postTaxYield') {
+          const yieldColor = invit.postTaxYield > gsecYield ? 'text-terminal-green' : 'text-foreground';
+          return (
+            <td key={col.key} className="px-3 py-2.5">
+              <span className={`font-bold ${invit.postTaxYield > 0 ? yieldColor : 'text-muted-foreground'}`}>
+                {invit.postTaxYield > 0 ? `${invit.postTaxYield.toFixed(2)}%` : '—'}
+              </span>
+            </td>
+          );
+        }
+
         return (
           <td key={col.key} className={`px-3 py-2.5 text-foreground ${val === null || val === 0 ? 'text-muted-foreground italic' : ''}`}>
             {col.format ? col.format(val) : String(val ?? '—')}
