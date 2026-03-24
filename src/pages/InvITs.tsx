@@ -3,13 +3,11 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { InvITTable } from '@/components/InvITTable';
 import { calculateInvITScores } from '@/lib/invit-scoring';
-import { discoverInvITData, getCachedInvITDiscovery } from '@/lib/invit-discovery-service';
-import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
+import { discoverInvITData } from '@/lib/invit-discovery-service';
+import { getGSecYield, type GSecStatus } from '@/lib/gsec-service';
 import { useTaxContext } from '@/contexts/TaxContext';
-import {
-  DEFAULT_GSEC_YIELD,
-  STRATEGY_PRESETS,
-} from '@/lib/reit-types';
+import { DEFAULT_GSEC_YIELD } from '@/lib/reit-types';
+import { LIVE_INVIT_DATA } from '@/lib/invit-types';
 import type { InvITData } from '@/lib/invit-types';
 import { toast } from 'sonner';
 
@@ -19,7 +17,7 @@ export default function InvITs() {
   const [gsecStatus, setGsecStatus] = useState<GSecStatus>('fallback');
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [invitData, setInvitData] = useState<InvITData[]>([]);
+  const [invitData, setInvitData] = useState<InvITData[]>(LIVE_INVIT_DATA);
   const [isLoading, setIsLoading] = useState(true);
   const [syncFailed, setSyncFailed] = useState(false);
 

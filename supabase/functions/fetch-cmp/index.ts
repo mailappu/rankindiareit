@@ -26,7 +26,7 @@ const BSE_SCRIP_CODES: Record<string, string> = {
   pginvit: '543620',
   irbinvit: '541956',
   nhit: '543985',
-  bhinvit: '544173',
+  bhinvit: '544137',
 };
 
 const FALLBACK_CMP: Record<string, number> = {
@@ -35,11 +35,11 @@ const FALLBACK_CMP: Record<string, number> = {
   brookfield: 319.79,
   nexus: 152.60,
   // InvITs - will be populated by first BSE fetch
-  indigrid: 0,
-  pginvit: 0,
-  irbinvit: 0,
-  nhit: 0,
-  bhinvit: 0,
+  indigrid: 165.20,
+  pginvit: 94.20,
+  irbinvit: 118.65,
+  nhit: 205.80,
+  bhinvit: 113.00,
 };
 
 // Fallback CAGR values (verified Mar 21, 2026)
