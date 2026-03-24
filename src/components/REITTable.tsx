@@ -96,12 +96,14 @@ function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: nu
 function REITRow({
   reit,
   gsecYield,
+  taxRate,
   sourceStatus,
   discoveredUrls,
   livePrices,
 }: {
   reit: ScoredREIT;
   gsecYield: number;
+  taxRate: number;
   sourceStatus?: Record<string, 'ok' | 'error'>;
   discoveredUrls?: Record<string, DiscoveredUrl>;
   livePrices?: Record<string, LivePrice>;
@@ -299,6 +301,66 @@ function REITRow({
           );
         }
 
+        if (col.key === 'postTaxYield') {
+          const tb = reit.taxBreakdown;
+          const ttm = reit.ttmDistribution;
+          const rate = taxRate / 100;
+          const interestAmt = ttm * tb.interest;
+          const exemptAmt = ttm * tb.divExempt;
+          const taxableAmt = ttm * tb.divTaxable;
+          const amortAmt = ttm * tb.amortization;
+          const postTaxDist = interestAmt * (1 - rate) + exemptAmt + taxableAmt * (1 - rate) + amortAmt;
+
+          return (
+            <td key={col.key} className={`px-3 py-2.5 ${heatClass}`}>
+              <div className="flex items-center gap-1">
+                <span className="text-foreground">{reit.postTaxYield.toFixed(2)}%</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 bg-card border-border text-xs font-mono p-3 space-y-1.5" side="top">
+                    <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">
+                      {reit.ticker} — Post-Tax Yield @ {taxRate}%
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Interest ({(tb.interest * 100).toFixed(0)}%)</span>
+                        <span className="text-terminal-red">₹{interestAmt.toFixed(2)} × {(1 - rate).toFixed(2)} = ₹{(interestAmt * (1 - rate)).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Exempt ({(tb.divExempt * 100).toFixed(0)}%)</span>
+                        <span className="text-terminal-green">₹{exemptAmt.toFixed(2)} × 1.00 = ₹{exemptAmt.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Taxable ({(tb.divTaxable * 100).toFixed(0)}%)</span>
+                        <span className="text-terminal-red">₹{taxableAmt.toFixed(2)} × {(1 - rate).toFixed(2)} = ₹{(taxableAmt * (1 - rate)).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Amort. ({(tb.amortization * 100).toFixed(0)}%)</span>
+                        <span className="text-terminal-green">₹{amortAmt.toFixed(2)} × 1.00 = ₹{amortAmt.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="border-t border-border pt-1.5 space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Net DPU</span>
+                        <span className="text-foreground font-semibold">₹{postTaxDist.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Post-Tax Yield</span>
+                        <span className="text-terminal-green font-semibold">{reit.postTaxYield.toFixed(2)}%</span>
+                      </div>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground pt-1">Exempt & amortization are never taxed</p>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </td>
+          );
+        }
+
         return (
           <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground ${val === null ? 'text-muted-foreground italic' : ''}`}>
             {col.format ? col.format(val) : String(val)}
@@ -384,6 +446,7 @@ export function REITTable({ data, gsecYield, taxRate, sourceStatus, discoveredUr
                   <REITRow
                     reit={reit}
                     gsecYield={gsecYield}
+                    taxRate={taxRate}
                     sourceStatus={sourceStatus}
                     discoveredUrls={discoveredUrls}
                     livePrices={livePrices}
