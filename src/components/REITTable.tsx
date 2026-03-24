@@ -76,7 +76,7 @@ function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: nu
           <div className="flex justify-between">
             <span className="text-muted-foreground">SafetyScore</span>
             <span className="text-terminal-blue">
-              ({reit.occupancy} + {100 - reit.ltv} + {(reit.wale * 10).toFixed(0)}) / 3 = <span className="font-semibold">{reit.safetyScore}</span>
+              (Occ:{reit.occupancy}% × 0.4) + (WALE:{reit.wale}Y × 0.4) + (LTV:{reit.ltv}% × 0.2) = <span className="font-semibold">{reit.safetyScore}</span>
             </span>
           </div>
           <div className="flex justify-between">
@@ -272,6 +272,23 @@ function REITRow({
                 <div>
                   <div className="font-semibold text-foreground text-xs">{reit.ticker}</div>
                   <div className="text-[10px] text-muted-foreground">{reit.name}</div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-[8px] px-1 py-0 rounded bg-terminal-blue/15 text-terminal-blue font-mono">
+                      {reit.occupancy}% Occ
+                    </span>
+                    <span className="text-[8px] px-1 py-0 rounded bg-terminal-cyan/15 text-terminal-cyan font-mono">
+                      {reit.wale}Y WALE
+                    </span>
+                    <span className={`text-[8px] px-1 py-0 rounded font-mono ${
+                      reit.safetyScore >= 80
+                        ? 'bg-terminal-green/15 text-terminal-green'
+                        : reit.safetyScore >= 60
+                        ? 'bg-terminal-amber/15 text-terminal-amber'
+                        : 'bg-terminal-red/15 text-terminal-red'
+                    }`}>
+                      {reit.safetyScore >= 80 ? '● Stable' : reit.safetyScore >= 60 ? '● Monitor' : '● Risk'}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   {pdfUrl && (
