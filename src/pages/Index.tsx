@@ -21,7 +21,7 @@ export default function Index() {
   const [gsecYield, setGsecYield] = useState(DEFAULT_GSEC_YIELD);
   const [preset, setPreset] = useState<StrategyPreset>('income');
   const [weights, setWeights] = useState<StrategyWeights>(STRATEGY_PRESETS.income);
-  const [taxRate, setTaxRate] = useState<TaxBracket>(10);
+  const [taxRate, setTaxRate] = useState<TaxBracket>(31.2);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [reitData, setReitData] = useState(() => {
