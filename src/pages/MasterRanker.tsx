@@ -236,7 +236,7 @@ function MasterTable({ data, gsecYield }: { data: UnifiedRow[]; gsecYield: numbe
   const [sortAsc, setSortAsc] = useState(false);
 
   const COLUMNS: { key: SortKey; label: string; align?: string }[] = [
-    { key: 'name', label: 'Asset Name' },
+    { key: 'name', label: 'Asset' },
     { key: 'assetType', label: 'Type' },
     { key: 'cmp', label: 'CMP (₹)', align: 'right' },
     { key: 'postTaxYield', label: 'Post-Tax Yield', align: 'right' },
