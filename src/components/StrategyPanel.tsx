@@ -9,9 +9,9 @@ interface StrategyPanelProps {
 }
 
 const PRESET_INFO: Record<Exclude<StrategyPreset, 'custom'>, { label: string; desc: string }> = {
-  income: { label: 'INCOME', desc: '50% Yield · 30% Safety · 20% Value' },
-  growth: { label: 'GROWTH', desc: '40% Growth · 40% Pipeline · 20% Value' },
-  riskAverse: { label: 'RISK AVERSE', desc: '60% Safety · 20% Yield · 20% Value' },
+  income: { label: 'INCOME', desc: '70% Yield · 20% Safety · 10% Growth' },
+  growth: { label: 'GROWTH', desc: '60% Growth · 20% Yield · 20% Safety' },
+  riskAverse: { label: 'RISK AVERSE', desc: '60% Safety · 30% Yield · 10% Growth' },
 };
 
 const WEIGHT_LABELS: { key: keyof StrategyWeights; label: string; color: string }[] = [
