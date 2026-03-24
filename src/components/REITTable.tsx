@@ -408,6 +408,153 @@ function REITRow({
         }
 
 
+        // DivScore with inline tooltip
+        if (col.key === 'divScore') {
+          return (
+            <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground`}>
+              <div className="flex items-center gap-1">
+                {reit.divScore.toFixed(1)}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 bg-card border-border text-xs font-mono p-3 space-y-1" side="top">
+                    <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">DivScore</div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Post-Tax Yield</span>
+                      <span className="text-foreground">{reit.postTaxYield.toFixed(2)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">G-Sec Yield</span>
+                      <span className="text-foreground">{gsecYield}%</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="text-muted-foreground">Score</span>
+                      <span className="text-terminal-green font-semibold">({reit.postTaxYield.toFixed(2)} / {gsecYield}) × 100 = {reit.divScore}</span>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </td>
+          );
+        }
+
+        // ValueScore with inline tooltip
+        if (col.key === 'valueScore') {
+          return (
+            <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground`}>
+              <div className="flex items-center gap-1">
+                <span className={reit.valueScore >= 0 ? 'text-terminal-green' : 'text-terminal-red'}>{reit.valueScore.toFixed(1)}%</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 bg-card border-border text-xs font-mono p-3 space-y-1" side="top">
+                    <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">Value%</div>
+                    <code className="text-[10px] text-muted-foreground block">((NAV − CMP) / NAV) × 100</code>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">NAV</span>
+                      <span className="text-foreground">₹{reit.nav}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">CMP</span>
+                      <span className="text-foreground">₹{reit.cmp.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="text-muted-foreground">Discount</span>
+                      <span className={`font-semibold ${reit.valueScore >= 0 ? 'text-terminal-green' : 'text-terminal-red'}`}>{reit.valueScore.toFixed(1)}%</span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground">Positive = undervalued vs NAV</p>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </td>
+          );
+        }
+
+        // SafetyScore with inline tooltip
+        if (col.key === 'safetyScore') {
+          return (
+            <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground`}>
+              <div className="flex items-center gap-1">
+                {reit.safetyScore.toFixed(1)}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 bg-card border-border text-xs font-mono p-3 space-y-1" side="top">
+                    <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">SafetyScore</div>
+                    <code className="text-[10px] text-muted-foreground block">(Occ×40%) + (WALE/10×40%) + ((1−LTV)×20%)</code>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Occupancy</span>
+                      <span className="text-foreground">{reit.occupancy}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">WALE</span>
+                      <span className="text-foreground">{reit.wale}Y</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">LTV</span>
+                      <span className="text-foreground">{reit.ltv}%</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="text-muted-foreground">Result</span>
+                      <span className="text-terminal-blue font-semibold">{reit.safetyScore.toFixed(1)}</span>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </td>
+          );
+        }
+
+        // GrowthScore with inline tooltip
+        if (col.key === 'growthScore') {
+          return (
+            <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground`}>
+              <div className="flex items-center gap-1">
+                {reit.growthScore.toFixed(1)}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-terminal-amber transition-colors">
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 bg-card border-border text-xs font-mono p-3 space-y-1" side="top">
+                    <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">GrowthScore</div>
+                    <code className="text-[10px] text-muted-foreground block">weighted(1Y×40 + 3Y×35 + 5Y×25)</code>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">1Y CAGR</span>
+                      <span className="text-foreground">{reit.growth1Y.toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">3Y CAGR</span>
+                      <span className="text-foreground">{reit.growth3Y !== null ? `${reit.growth3Y.toFixed(1)}%` : 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">5Y CAGR</span>
+                      <span className="text-foreground">{reit.growth5Y !== null ? `${reit.growth5Y.toFixed(1)}%` : 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-border pt-1">
+                      <span className="text-muted-foreground">Result</span>
+                      <span className="text-terminal-cyan font-semibold">{reit.growthScore.toFixed(1)}</span>
+                    </div>
+                    {reit.growth5Y === null && (
+                      <p className="text-[9px] text-terminal-amber">5Y N/A — weight redistributed to 1Y & 3Y</p>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </td>
+          );
+        }
+
         return (
           <td key={col.key} className={`px-3 py-2.5 ${heatClass} text-foreground ${val === null ? 'text-muted-foreground italic' : ''}`}>
             {col.format ? col.format(val) : String(val)}
