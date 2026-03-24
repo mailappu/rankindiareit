@@ -17,7 +17,7 @@ import {
 } from '@/lib/reit-types';
 import type { REITData, ScoreBreakdown } from '@/lib/reit-types';
 import type { InvITData, InvITScoreBreakdown } from '@/lib/invit-types';
-import { computeInvITPostTaxYield, computeInvITDivYield } from '@/lib/invit-types';
+import { computeInvITPostTaxYield, computeInvITDivYield, LIVE_INVIT_DATA } from '@/lib/invit-types';
 import { ArrowUpDown, ArrowUp, ArrowDown, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -60,7 +60,7 @@ export default function MasterRanker() {
     }
     return LIVE_REIT_DATA;
   });
-  const [invitData, setInvitData] = useState<InvITData[]>([]);
+  const [invitData, setInvitData] = useState<InvITData[]>(LIVE_INVIT_DATA);
 
   const scoredReits = useMemo(
     () => calculateScores(reitData, gsecYield, weights, taxRate),
