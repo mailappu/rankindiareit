@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { TopNav } from '@/components/TopNav';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
-import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
@@ -49,69 +48,22 @@ export default function Index() {
     [reitData, gsecYield, weights, taxRate]
   );
 
-  // Auto-fetch live CMP prices and G-Sec on mount
+  // Load cached data on mount — no network calls
   useEffect(() => {
-    const fetchOnMount = async () => {
-      // Fetch G-Sec benchmark
+    // G-Sec: use cached if available
+    const cachedGsec = localStorage.getItem('gsec_yield');
+    if (cachedGsec) {
       try {
-        const result = await getGSecYield();
-        setGsecYield(result.yield);
-        setGsecStatus(result.status);
-
-        if (result.changed && result.previousYield !== null && shouldShowToast(result.previousYield, result.yield)) {
-          toast.info(`Benchmark rate changed to ${result.yield.toFixed(3)}%`, {
-            description: 'Re-calculating Dividend Scores across all REITs.',
-          });
+        const parsed = JSON.parse(cachedGsec);
+        if (parsed.yield) {
+          setGsecYield(parsed.yield);
+          setGsecStatus(parsed.status || 'cached');
         }
-      } catch {
-        setGsecStatus('fallback');
-      }
+      } catch {}
+    }
 
-      // Fetch live CMP prices
-      try {
-        console.log('[CMP Fetch] Calling fetch-cmp edge function...');
-        const { data, error } = await supabase.functions.invoke('fetch-cmp');
-        console.log('[CMP Fetch] Raw response:', JSON.stringify(data, null, 2));
-        if (error) console.error('[CMP Fetch] Error:', error);
-
-        if (!error && data?.success && Array.isArray(data.prices)) {
-          const priceMap: Record<string, LivePrice> = {};
-          for (const p of data.prices) {
-            // 30% drift warning
-            const baseline = LIVE_REIT_DATA.find(r => r.id === p.reitId);
-            if (baseline) {
-              const drift = Math.abs(p.cmp - baseline.cmp) / baseline.cmp;
-              if (drift > 0.3) {
-                console.warn(`[CMP Warning] ${p.reitId}: ₹${p.cmp} vs baseline ₹${baseline.cmp} (${(drift * 100).toFixed(1)}% drift)`);
-                toast.warning(`Data Sync Warning: ${p.reitId.toUpperCase()}`, {
-                  description: `Price ₹${p.cmp} is ${(drift * 100).toFixed(0)}% different from baseline ₹${baseline.cmp}. Verify manually.`,
-                });
-              }
-            }
-            priceMap[p.reitId] = {
-              reitId: p.reitId,
-              cmp: p.cmp,
-              isLive: p.isLive,
-              fetchedAt: p.fetchedAt,
-              error: p.error,
-              growth1Y: p.growth1Y,
-              growth3Y: p.growth3Y,
-              growth5Y: p.growth5Y,
-              cagrSource: p.cagrSource,
-            };
-          }
-          setLivePrices(priceMap);
-          setReitData(applyLivePrices(LIVE_REIT_DATA, priceMap));
-          localStorage.setItem('reit_cmp_cache', JSON.stringify(priceMap));
-        }
-      } catch (err) {
-        console.warn('[CMP Fetch] Auto CMP fetch failed:', err);
-      }
-
-      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
-      setProvenanceBadge(getProvenanceBadge());
-    };
-    fetchOnMount();
+    setLastSynced(localStorage.getItem('last_sync_time') || null);
+    setProvenanceBadge(getProvenanceBadge());
   }, []);
 
   // ── Audit v2026.3 ──
@@ -268,6 +220,8 @@ export default function Index() {
 
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
+      localStorage.setItem('gsec_yield', JSON.stringify({ yield: gsecYield, status: gsecStatus }));
       setProvenanceBadge(getProvenanceBadge());
     } catch (err) {
       setSyncFailed(true);
@@ -282,6 +236,7 @@ export default function Index() {
       });
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
     } finally {
       setIsSyncing(false);
     }
@@ -356,9 +311,6 @@ export default function Index() {
         />
 
         <REITTable data={scoredData} gsecYield={gsecYield} taxRate={taxRate} preset={preset} sourceStatus={sourceStatus} discoveredUrls={discoveredUrls} livePrices={livePrices} />
-
-        <TerminologyCard />
-
       </main>
     </div>
   );

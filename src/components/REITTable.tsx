@@ -20,6 +20,14 @@ interface REITTableProps {
   livePrices?: Record<string, LivePrice>;
 }
 
+const SCORE_TOOLTIPS: Record<string, string> = {
+  finalScore: 'Weighted composite of DivScore, ValueScore, SafetyScore & GrowthScore based on your selected strategy preset.',
+  divScore: '(Post-Tax Yield / G-Sec Yield) × 100. Measures yield premium over the risk-free benchmark.',
+  valueScore: '((NAV − CMP) / NAV) × 100. Positive = trading below intrinsic value (undervalued).',
+  safetyScore: '(Occupancy × 40%) + (WALE/10 × 40%) + ((1−LTV) × 20%). Higher = more defensive.',
+  growthScore: 'Weighted blend of 1Y (40%), 3Y (35%), 5Y (25%) price CAGR. If 5Y is N/A, weight redistributes.',
+};
+
 const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatmap?: string }[] = [
   { key: 'name', label: 'REIT' },
   { key: 'sector', label: 'Sector' },
@@ -282,9 +290,9 @@ function REITRow({
                     <span className="text-[8px] px-1 py-0 rounded bg-muted text-muted-foreground font-mono">
                       {reit.ltv}% LTV
                     </span>
-                    <span className="text-[8px] px-1 py-0 rounded bg-muted text-muted-foreground font-mono leading-tight inline-flex flex-col items-center">
+                    <span className="text-[8px] px-1 py-0 rounded bg-muted text-foreground font-mono leading-tight inline-flex flex-col items-center">
                       <span>{reit.pipeline}M sqft</span>
-                      <span className="text-[7px] opacity-70">Pipeline</span>
+                      <span className="text-[7px] text-muted-foreground">Pipeline</span>
                     </span>
                     <span className={`text-[8px] px-1 py-0 rounded font-mono ${
                       reit.safetyScore >= 80
@@ -476,10 +484,20 @@ export function REITTable({ data, gsecYield, taxRate, preset, sourceStatus, disc
                   >
                     <div className="flex items-center gap-1">
                       {col.label}
-                      {col.key === 'finalScore' && preset && (
+                      {SCORE_TOOLTIPS[col.key] && (
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="text-terminal-amber cursor-help"><Info className="h-2.5 w-2.5" /></span>
+                          </TooltipTrigger>
+                          <TooltipContent className="text-[10px] font-mono max-w-[260px]">
+                            {SCORE_TOOLTIPS[col.key]}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {col.key === 'finalScore' && preset && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-primary cursor-help text-[8px]">({STRATEGY_LABELS[preset] || preset})</span>
                           </TooltipTrigger>
                           <TooltipContent className="text-xs font-mono">
                             Ranking weighted for {STRATEGY_LABELS[preset] || preset} strategy

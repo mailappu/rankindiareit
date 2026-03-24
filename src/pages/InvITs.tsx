@@ -18,7 +18,7 @@ export default function InvITs() {
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [invitData, setInvitData] = useState<InvITData[]>(LIVE_INVIT_DATA);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
 
   const scoredData = useMemo(
@@ -26,48 +26,19 @@ export default function InvITs() {
     [invitData, gsecYield, weights, taxRate]
   );
 
-  // Auto-fetch on mount
+  // Load cached data on mount — no network calls
   useEffect(() => {
-    const fetchOnMount = async () => {
-      setIsLoading(true);
-
-      // Fetch G-Sec
+    const cachedGsec = localStorage.getItem('gsec_yield');
+    if (cachedGsec) {
       try {
-        const result = await getGSecYield();
-        setGsecYield(result.yield);
-        setGsecStatus(result.status);
-      } catch {
-        setGsecStatus('fallback');
-      }
-
-      // Fetch InvIT data
-      try {
-        console.log('[InvIT] Starting data discovery...');
-        const result = await discoverInvITData();
-        setInvitData(result.invits);
-
-        if (result.errors.length > 0) {
-          result.errors.forEach(err => toast.warning('InvIT Data', { description: err }));
+        const parsed = JSON.parse(cachedGsec);
+        if (parsed.yield) {
+          setGsecYield(parsed.yield);
+          setGsecStatus(parsed.status || 'cached');
         }
-
-        const withPrice = result.invits.filter(i => i.cmp > 0);
-        if (withPrice.length > 0) {
-          toast.success(`InvIT data loaded: ${withPrice.length}/${result.invits.length} with live prices`);
-        } else {
-          toast.warning('InvIT prices unavailable. Data will populate after BSE market hours.');
-          setSyncFailed(true);
-        }
-      } catch (err) {
-        console.error('[InvIT] Discovery failed:', err);
-        toast.error('Failed to load InvIT data');
-        setSyncFailed(true);
-      }
-
-      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
-      setIsLoading(false);
-    };
-
-    fetchOnMount();
+      } catch {}
+    }
+    setLastSynced(localStorage.getItem('last_sync_time') || null);
   }, []);
 
   const handleSync = useCallback(async () => {
@@ -80,6 +51,7 @@ export default function InvITs() {
       if (gsecResult.yield !== gsecYield) {
         setGsecYield(gsecResult.yield);
       }
+      localStorage.setItem('gsec_yield', JSON.stringify({ yield: gsecResult.yield, status: gsecResult.status }));
 
       const result = await discoverInvITData();
       setInvitData(result.invits);
@@ -91,7 +63,9 @@ export default function InvITs() {
       const withPrice = result.invits.filter(i => i.cmp > 0);
       toast.success(`InvIT sync complete: ${withPrice.length} with live data`);
 
-      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
     } catch (err) {
       setSyncFailed(true);
       toast.error('Sync failed', {
