@@ -201,24 +201,7 @@ function InvITRow({ invit, gsecYield, taxRate }: { invit: ScoredInvIT; gsecYield
           );
         }
 
-        if (col.key === 'concessionLife' && invit.concessionLife > 0) {
-          // Contract life gauge
-          const pct = Math.min(invit.concessionLife / 30, 1) * 100;
-          return (
-            <td key={col.key} className="px-3 py-2.5">
-              <div className="space-y-0.5">
-                <span className="text-foreground text-xs">{invit.concessionLife.toFixed(0)}Y</span>
-                <div className="w-16 h-1.5 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-teal-400 transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <span className="text-[8px] text-muted-foreground">/30Y max</span>
-              </div>
-            </td>
-          );
-        }
+
 
         if (col.key === 'postTaxYield') {
           const yieldColor = invit.postTaxYield > gsecYield ? 'text-terminal-green' : 'text-foreground';
