@@ -51,6 +51,7 @@ export default function InvITs() {
       if (gsecResult.yield !== gsecYield) {
         setGsecYield(gsecResult.yield);
       }
+      localStorage.setItem('gsec_yield', JSON.stringify({ yield: gsecResult.yield, status: gsecResult.status }));
 
       const result = await discoverInvITData();
       setInvitData(result.invits);
@@ -62,7 +63,9 @@ export default function InvITs() {
       const withPrice = result.invits.filter(i => i.cmp > 0);
       toast.success(`InvIT sync complete: ${withPrice.length} with live data`);
 
-      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
+      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
     } catch (err) {
       setSyncFailed(true);
       toast.error('Sync failed', {

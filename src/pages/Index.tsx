@@ -220,6 +220,8 @@ export default function Index() {
 
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
+      localStorage.setItem('gsec_yield', JSON.stringify({ yield: gsecYield, status: gsecStatus }));
       setProvenanceBadge(getProvenanceBadge());
     } catch (err) {
       setSyncFailed(true);
@@ -234,6 +236,7 @@ export default function Index() {
       });
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
     } finally {
       setIsSyncing(false);
     }
