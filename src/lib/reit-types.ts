@@ -85,12 +85,40 @@ export const DEFAULT_GSEC_YIELD = 6.77;
 export const DATA_VERIFIED_DATE = 'March 21, 2026';
 export const CURRENT_DATE = '2026-03-21';
 
+// Quarterly distributions (most recent first, verified Mar 21 2026)
+export const QUARTERLY_DISTRIBUTIONS: Record<string, { quarter: string; amount: number }[]> = {
+  embassy: [
+    { quarter: 'Q3 FY26', amount: 6.47 },
+    { quarter: 'Q2 FY26', amount: 6.51 },
+    { quarter: 'Q1 FY26', amount: 5.80 },
+    { quarter: 'Q4 FY25', amount: 5.68 },
+  ],
+  mindspace: [
+    { quarter: 'Q3 FY26', amount: 5.83 },
+    { quarter: 'Q2 FY26', amount: 5.83 },
+    { quarter: 'Q1 FY26', amount: 5.79 },
+    { quarter: 'Q4 FY25', amount: 6.44 },
+  ],
+  brookfield: [
+    { quarter: 'Q3 FY26', amount: 5.40 },
+    { quarter: 'Q2 FY26', amount: 5.25 },
+    { quarter: 'Q1 FY26', amount: 5.25 },
+    { quarter: 'Q4 FY25', amount: 5.25 },
+  ],
+  nexus: [
+    { quarter: 'Q3 FY26', amount: 2.37 },
+    { quarter: 'Q2 FY26', amount: 2.20 },
+    { quarter: 'Q1 FY26', amount: 2.23 },
+    { quarter: 'Q4 FY25', amount: 2.00 },
+  ],
+};
+
 // TTM Distributions (Total of last 4 quarters, verified Mar 21 2026)
 export const TTM_DISTRIBUTIONS: Record<string, number> = {
-  embassy: 24.46,    // 6.47 + 6.51 + 5.80 + 5.68
-  mindspace: 23.89,  // 5.83 + 5.83 + 5.79 + 6.44
-  brookfield: 21.15, // 5.40 + 5.25 + 5.25 + 5.25
-  nexus: 8.80,       // 2.37 + 2.20 + 2.23 + 2.00
+  embassy: 24.46,
+  mindspace: 23.89,
+  brookfield: 21.15,
+  nexus: 8.80,
 };
 
 // Fallback CMP prices (verified closing prices Mar 21 2026)
