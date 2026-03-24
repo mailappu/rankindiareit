@@ -101,7 +101,7 @@ export function TopNav({
             {/* Tax Selector */}
             {taxRate !== undefined && onTaxRateChange && (
               <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v) as TaxBracket)}>
-                <SelectTrigger className="h-6 w-[70px] text-[9px] font-mono border-border bg-secondary/50">
+                <SelectTrigger className="h-6 w-[80px] text-[9px] font-mono border-border bg-secondary/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
