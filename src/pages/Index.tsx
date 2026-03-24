@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DashboardHeader } from '@/components/DashboardHeader';
+import { TopNav } from '@/components/TopNav';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { TerminologyCard } from '@/components/TerminologyCard';
@@ -335,20 +335,16 @@ export default function Index() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <DashboardHeader
+      <TopNav
         gsecYield={gsecYield}
         gsecStatus={gsecStatus}
         lastSynced={lastSynced}
         syncFailed={syncFailed}
         isSyncing={isSyncing}
         onSync={handleSync}
-        provenanceBadge={provenanceBadge}
         syncErrors={syncErrors}
         taxRate={taxRate}
         onTaxRateChange={setTaxRate}
-        onRefreshData={handleRefreshData}
-        isRefreshingData={isRefreshingData}
-        lastDataSync={lastDataSync}
       />
 
       <main className="flex-1 px-3 sm:px-6 py-4 space-y-4 max-w-[1600px] mx-auto w-full">

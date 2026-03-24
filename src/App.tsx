@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TaxProvider } from "@/contexts/TaxContext";
-import { TopNav } from "@/components/TopNav";
+
 import { StickyFooter } from "@/components/StickyFooter";
 import Index from "./pages/Index.tsx";
 import InvITs from "./pages/InvITs.tsx";
@@ -21,8 +21,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <TopNav />
+            <div className="min-h-screen flex flex-col bg-background text-foreground">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/ranker" element={<MasterRanker />} />
