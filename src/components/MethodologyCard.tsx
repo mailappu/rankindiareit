@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 
-export function MethodologyCard() {
-  const [expanded, setExpanded] = useState(false);
+export function MethodologyCard({ defaultExpanded = false }: { defaultExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
     <div className="card-terminal p-4">

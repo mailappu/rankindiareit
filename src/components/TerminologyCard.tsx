@@ -46,8 +46,8 @@ const TERMS = [
   },
 ];
 
-export function TerminologyCard() {
-  const [expanded, setExpanded] = useState(false);
+export function TerminologyCard({ defaultExpanded = false }: { defaultExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
     <div className="card-terminal p-3 sm:p-4">
