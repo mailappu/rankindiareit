@@ -201,6 +201,29 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
               </Dialog>
             )}
 
+            {onRefreshData && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onRefreshData}
+                    disabled={isRefreshingData}
+                    className="font-mono text-[10px] sm:text-xs gap-1.5 border-terminal-cyan/30 text-terminal-cyan hover:bg-terminal-cyan/10 hover:text-terminal-cyan px-2 sm:px-3"
+                  >
+                    <Database className={`h-3.5 w-3.5 ${isRefreshingData ? 'animate-pulse' : ''}`} />
+                    {isRefreshingData ? 'FETCHING...' : 'BSE DATA'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[220px]">
+                  <p>Fetch latest corporate filings from BSE XBRL. Use after board meeting announcements.</p>
+                  {lastDataSync && (
+                    <p className="text-muted-foreground mt-1">Last synced: {new Date(lastDataSync).toLocaleString('en-IN')}</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             <Button
               variant="outline"
               size="sm"
