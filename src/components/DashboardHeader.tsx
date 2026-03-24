@@ -53,28 +53,30 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
         </div>
 
         {/* Controls row */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-          {/* Benchmark indicator */}
+        <div className="flex flex-wrap items-start gap-2 sm:gap-4">
+          {/* Benchmark indicator — stacked: yield on top, status below */}
           <TooltipProvider>
           <Dialog>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity cursor-pointer text-xs font-mono">
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
-                </span>
-                <span className="hidden sm:inline text-muted-foreground">BENCHMARK</span>
-                <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
-                    <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
-                  </TooltipContent>
-                </Tooltip>
-                <span title="Verified Mar 24, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
-                <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
+              <button className="flex flex-col items-center hover:opacity-80 transition-opacity cursor-pointer text-xs font-mono">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
+                  </span>
+                  <span className="hidden sm:inline text-muted-foreground">BENCHMARK</span>
+                  <span className="text-terminal-amber font-semibold text-sm">{gsecYield.toFixed(2)}%</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
+                      <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <span title="Verified Mar 24, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
+                </div>
+                <span className={`text-[8px] px-1 py-0.5 rounded uppercase mt-1 ${
                   gsecStatus === 'live'
                     ? 'bg-terminal-green/15 text-terminal-green'
                     : gsecStatus === 'cached'
@@ -152,17 +154,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
             </Select>
           </div>
 
-          {lastSynced && (
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <span className="hidden sm:inline text-muted-foreground">SYNCED</span>
-              <span className={syncFailed ? 'text-terminal-red' : 'text-foreground'}>
-                {lastSynced}
-                {syncFailed && <span className="ml-1 text-terminal-red">(Failed)</span>}
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             {syncErrors.length > 0 && (
               <Dialog>
                 <DialogTrigger asChild>
@@ -201,39 +193,24 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
               </Dialog>
             )}
 
-            {onRefreshData && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onRefreshData}
-                    disabled={isRefreshingData}
-                    className="font-mono text-[10px] sm:text-xs gap-1.5 border-terminal-cyan/30 text-terminal-cyan hover:bg-terminal-cyan/10 hover:text-terminal-cyan px-2 sm:px-3"
-                  >
-                    <Database className={`h-3.5 w-3.5 ${isRefreshingData ? 'animate-pulse' : ''}`} />
-                    {isRefreshingData ? 'FETCHING...' : 'BSE DATA'}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[220px]">
-                  <p>Fetch latest corporate filings from BSE XBRL. Use after board meeting announcements.</p>
-                  {lastDataSync && (
-                    <p className="text-muted-foreground mt-1">Last synced: {new Date(lastDataSync).toLocaleString('en-IN')}</p>
-                  )}
-                </TooltipContent>
-              </Tooltip>
-            )}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSync}
-              disabled={isSyncing}
-              className="font-mono text-[10px] sm:text-xs gap-1.5 border-terminal-green/30 text-terminal-green hover:bg-terminal-green/10 hover:text-terminal-green px-2 sm:px-3"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'SYNC...' : 'SYNC'}
-            </Button>
+            {/* Sync button — stacked: button on top, synced time below */}
+            <div className="flex flex-col items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSync}
+                disabled={isSyncing}
+                className="font-mono text-[10px] sm:text-xs gap-1.5 border-terminal-green/30 text-terminal-green hover:bg-terminal-green/10 hover:text-terminal-green px-2 sm:px-3"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? 'SYNC...' : 'SYNC'}
+              </Button>
+              {lastSynced && (
+                <span className={`text-[8px] font-mono mt-1 ${syncFailed ? 'text-terminal-red' : 'text-muted-foreground'}`}>
+                  {lastSynced}{syncFailed ? ' ✗' : ''}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
