@@ -1,5 +1,5 @@
 import { NavLink as RouterNavLink } from 'react-router-dom';
-import { BarChart3, Building2, Zap } from 'lucide-react';
+import { BarChart3, Building2, Zap, Trophy, BookOpen } from 'lucide-react';
 
 export function TopNav() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -10,22 +10,34 @@ export function TopNav() {
     }`;
 
   return (
-    <nav className="border-b border-border px-3 sm:px-6 py-2 flex items-center gap-2">
-      <div className="flex items-center gap-2 mr-4">
+    <nav className="border-b border-border px-3 sm:px-6 py-2 flex items-center gap-2 overflow-x-auto">
+      <div className="flex items-center gap-2 mr-4 shrink-0">
         <BarChart3 className="h-4 w-4 text-primary" />
         <span className="text-sm font-mono">
           <span className="font-bold text-foreground">RankIndia</span>
         </span>
       </div>
+      <RouterNavLink to="/ranker" className={linkClass}>
+        <Trophy className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">Master Ranker</span>
+        <span className="sm:hidden">Ranker</span>
+      </RouterNavLink>
       <RouterNavLink to="/" className={linkClass}>
         <Building2 className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">REITs</span>
+        <span className="hidden sm:inline">Commercial REITs</span>
+        <span className="sm:hidden">REITs</span>
         <span className="px-1 py-0 rounded text-[8px] bg-terminal-blue/15 text-terminal-blue">REIT</span>
       </RouterNavLink>
       <RouterNavLink to="/invits" className={linkClass}>
         <Zap className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">InvITs</span>
+        <span className="hidden sm:inline">Infrastructure InvITs</span>
+        <span className="sm:hidden">InvITs</span>
         <span className="px-1 py-0 rounded text-[8px] bg-teal-500/15 text-teal-400">InvIT</span>
+      </RouterNavLink>
+      <RouterNavLink to="/about" className={linkClass}>
+        <BookOpen className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">About & Methodology</span>
+        <span className="sm:hidden">About</span>
       </RouterNavLink>
     </nav>
   );

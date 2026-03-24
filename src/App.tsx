@@ -5,8 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TaxProvider } from "@/contexts/TaxContext";
 import { TopNav } from "@/components/TopNav";
+import { StickyFooter } from "@/components/StickyFooter";
 import Index from "./pages/Index.tsx";
 import InvITs from "./pages/InvITs.tsx";
+import MasterRanker from "./pages/MasterRanker.tsx";
+import About from "./pages/About.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -18,13 +21,18 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <TopNav />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/invits" element={<InvITs />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="min-h-screen flex flex-col bg-background text-foreground">
+            <TopNav />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/ranker" element={<MasterRanker />} />
+              <Route path="/invits" element={<InvITs />} />
+              <Route path="/about" element={<About />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <StickyFooter />
+          </div>
         </BrowserRouter>
       </TaxProvider>
     </TooltipProvider>

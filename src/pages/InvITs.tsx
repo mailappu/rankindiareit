@@ -105,7 +105,7 @@ export default function InvITs() {
   }, [gsecYield]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex-1 flex flex-col">
       <DashboardHeader
         gsecYield={gsecYield}
         gsecStatus={gsecStatus}
@@ -155,23 +155,6 @@ export default function InvITs() {
           <InvITTable data={scoredData} gsecYield={gsecYield} taxRate={taxRate} preset={preset} />
         )}
 
-        <div className="space-y-2 px-4 py-3 rounded border border-border bg-secondary/30">
-          <div className="flex items-start gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <p className="text-[10px] font-mono text-muted-foreground leading-relaxed">
-              <span className="font-semibold text-foreground">Disclaimer:</span> InvIT data is sourced dynamically from BSE XBRL filings. Infrastructure assets have different risk profiles than real estate. Concession-based assets have finite lives. Please consult a certified financial advisor before investing.
-            </p>
-          </div>
-        </div>
-
-        <div className="text-center py-3">
-          <span className="text-[10px] font-mono text-muted-foreground">
-            Crafted by{' '}
-            <a href="https://www.linkedin.com/in/pradeep-kumars/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-              Pradeep
-            </a>
-          </span>
-        </div>
       </main>
     </div>
   );
