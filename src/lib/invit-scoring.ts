@@ -49,6 +49,7 @@ export function calculateInvITScores(
     return {
       ...invit,
       divScore: r(divScore),
+      valueScore: r(valueScore),
       safetyScore: r(safetyScore),
       growthScore: r(growthScore),
       postTaxYield: r(postTaxYield),
