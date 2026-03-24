@@ -7,23 +7,29 @@ export function calculateInvITScores(
   weights: StrategyWeights,
   taxRate: number = 10
 ): (InvITData & InvITScoreBreakdown)[] {
-  const maxGrowth1Y = Math.max(...invits.map(i => Math.abs(i.growth1Y)), 1);
 
   const scored = invits.map(invit => {
+    // ── Post-Tax Yield ──
     const postTaxYield = computeInvITPostTaxYield(invit.taxBreakdown, invit.ttmDistribution, invit.cmp, taxRate);
-    const divScore = (postTaxYield / gsecYield) * 100;
 
-    // ValueScore = ((NAV - CMP) / NAV) * 100
+    // ── DivScore: (Post-Tax Yield / G-Sec Yield) * 100 ──
+    const divScore = gsecYield > 0 ? (postTaxYield / gsecYield) * 100 : 0;
+
+    // ── ValueScore: ((NAV - CMP) / NAV) * 100 ──
     const valueScore = invit.nav > 0 ? ((invit.nav - invit.cmp) / invit.nav) * 100 : 0;
 
-    // Safety Score = (Availability % * 0.5) + (min(ConcessionLife, 30) * 1.66)
-    const safetyScore = (invit.availability * 0.5) + (Math.min(invit.concessionLife, 30) * 1.66);
+    // ── SafetyScore (InvIT-specific parity with REIT formula) ──
+    // (Availability * 0.40) + (ConcessionLife/30 * 0.40) + ((1 - LTV/100) * 0.20)
+    // All components normalized to 0–100 scale
+    const availabilityComponent = invit.availability * 0.40;
+    const concessionComponent = (Math.min(invit.concessionLife, 30) / 30) * 100 * 0.40;
+    const ltvComponent = (1 - Math.min(invit.ltv, 100) / 100) * 100 * 0.20;
+    const safetyScore = availabilityComponent + concessionComponent + ltvComponent;
 
-    // Growth Score: higher for Road/Toll (WPI-linked), lower for Transmission (fixed annuity)
-    const sectorMultiplier = (invit.sector === 'Road/Toll') ? 1.2 : 0.8;
-    const growthScore = (invit.growth1Y / maxGrowth1Y) * 100 * sectorMultiplier;
+    // ── GrowthScore: Weighted CAGR (1Y: 40%, 3Y: 35%, 5Y: 25%) with redistribution ──
+    const growthScore = computeWeightedGrowth(invit.growth1Y, invit.growth3Y, invit.growth5Y);
 
-    // Weighted final score (include value weight if available)
+    // ── Weighted Final Score ──
     const valueWeight = weights.value || 0;
     const totalWeight = weights.yield + weights.safety + weights.growth + valueWeight;
     if (totalWeight === 0) {
@@ -44,7 +50,7 @@ export function calculateInvITScores(
       safetyScore * effSafety +
       growthScore * effGrowth;
 
-    console.log(`Safety Audit [InvIT]: ${invit.name} Score: ${safetyScore.toFixed(1)} | Availability: ${invit.availability}% | Concession: ${invit.concessionLife}Y`);
+    console.log(`Safety Audit [InvIT]: ${invit.name} Score: ${safetyScore.toFixed(1)} | Avail: ${availabilityComponent.toFixed(1)} | Concession: ${concessionComponent.toFixed(1)} | LTV: ${ltvComponent.toFixed(1)}`);
 
     return {
       ...invit,
@@ -62,6 +68,35 @@ export function calculateInvITScores(
   scored.forEach((s, i) => { s.rank = i + 1; });
 
   return scored;
+}
+
+/**
+ * Weighted CAGR: 1Y (40%), 3Y (35%), 5Y (25%)
+ * If 3Y or 5Y is N/A, redistribute weight proportionally to available metrics.
+ */
+function computeWeightedGrowth(g1Y: number, g3Y: number | null, g5Y: number | null): number {
+  let w1 = 40, w3 = 35, w5 = 25;
+  const has3Y = g3Y !== null && g3Y !== undefined;
+  const has5Y = g5Y !== null && g5Y !== undefined;
+
+  if (!has3Y && !has5Y) {
+    // Only 1Y available — use it fully
+    return g1Y;
+  } else if (!has5Y) {
+    // Redistribute 5Y weight to 1Y and 3Y proportionally
+    const total = w1 + w3;
+    w1 = (w1 / total) * 100;
+    w3 = (w3 / total) * 100;
+    w5 = 0;
+  } else if (!has3Y) {
+    // Redistribute 3Y weight to 1Y and 5Y proportionally
+    const total = w1 + w5;
+    w1 = (w1 / total) * 100;
+    w5 = (w5 / total) * 100;
+    w3 = 0;
+  }
+
+  return (g1Y * w1 + (g3Y ?? 0) * w3 + (g5Y ?? 0) * w5) / 100;
 }
 
 function r(v: number): number {
