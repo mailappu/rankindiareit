@@ -21,8 +21,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <TopNav />
+            <div className="min-h-screen flex flex-col bg-background text-foreground">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/ranker" element={<MasterRanker />} />
