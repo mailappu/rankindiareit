@@ -10,6 +10,13 @@ const TICKERS: Record<string, string> = {
   nexus: 'NXST',
 };
 
+const BSE_SCRIP_CODES: Record<string, string> = {
+  embassy: '542602',
+  mindspace: '543217',
+  brookfield: '543261',
+  nexus: '543913',
+};
+
 const FALLBACK_CMP: Record<string, number> = {
   embassy: 417.00,
   mindspace: 449.59,
