@@ -40,6 +40,7 @@ const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string; heatm
   { key: 'wale', label: 'WALE', format: v => `${v}Y` },
   { key: 'ltv', label: 'LTV', format: v => `${v}%`, heatmap: 'ltv' },
   { key: 'pipeline', label: 'Pipeline', format: v => `${v}M sqft` },
+  { key: 'irUrl', label: 'Source' },
 ];
 
 function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: number }) {
@@ -369,6 +370,21 @@ function REITRow({
                   </PopoverContent>
                 </Popover>
               </div>
+            </td>
+          );
+        }
+
+        if (col.key === 'irUrl') {
+          return (
+            <td key={col.key} className="px-3 py-2.5">
+              <a
+                href={reit.irUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-terminal-blue hover:text-terminal-blue/80 underline underline-offset-2 text-[10px]"
+              >
+                IR Page
+              </a>
             </td>
           );
         }
