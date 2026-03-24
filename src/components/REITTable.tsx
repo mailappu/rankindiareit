@@ -205,6 +205,7 @@ function REITRow({
         }
 
         if (col.key === 'divYield') {
+          const quarters = QUARTERLY_DISTRIBUTIONS[reit.id] || [];
           return (
             <td key={col.key} className={`px-3 py-2.5 ${heatClass}`}>
               <div className="flex items-center gap-1">
@@ -215,11 +216,22 @@ function REITRow({
                       <Info className="h-2.5 w-2.5" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-56 bg-card border-border text-xs font-mono p-3 space-y-1.5" side="top">
+                  <PopoverContent className="w-64 bg-card border-border text-xs font-mono p-3 space-y-1.5" side="top">
                     <div className="text-[11px] font-semibold text-foreground border-b border-border pb-1 mb-1">
                       Yield Breakdown
                     </div>
-                    <div className="flex justify-between">
+                    {quarters.length > 0 && (
+                      <div className="space-y-0.5 pb-1 border-b border-border mb-1">
+                        <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Quarterly Distributions</div>
+                        {quarters.map((q) => (
+                          <div key={q.quarter} className="flex justify-between">
+                            <span className="text-muted-foreground">{q.quarter}</span>
+                            <span className="text-foreground">₹{q.amount.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex justify-between font-semibold">
                       <span className="text-muted-foreground">TTM DPU</span>
                       <span className="text-foreground">₹{reit.ttmDistribution}</span>
                     </div>
