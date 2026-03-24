@@ -39,34 +39,31 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
 
   return (
     <header className="border-b border-border px-3 sm:px-6 py-3">
-      <div className="flex flex-wrap items-start justify-end gap-3 sm:gap-4">
-        {/* Benchmark Stack — vertical: yield on top, G-Sec label + status below */}
+      <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
+        {/* Benchmark — inline */}
         <TooltipProvider>
-          <div className="flex flex-col items-center text-center">
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
-              </span>
-              <span className="text-foreground font-bold text-lg font-mono">{gsecYield.toFixed(2)}%</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
-                  <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
-                </TooltipContent>
-              </Tooltip>
-              <span title="Verified Mar 24, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
-            </div>
-            <span className="text-[9px] font-mono text-muted-foreground">India 10Y G-Sec</span>
-            <span className={`text-[8px] px-1 py-0.5 rounded uppercase mt-0.5 ${
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pulseColor}`} />
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${pulseColor}`} />
+            </span>
+            <span className="text-foreground font-bold text-sm font-mono">{gsecYield.toFixed(2)}%</span>
+            <span className="text-[9px] font-mono text-muted-foreground hidden sm:inline">G-Sec</span>
+            <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
               gsecStatus === 'live'
                 ? 'bg-terminal-green/15 text-terminal-green'
                 : gsecStatus === 'cached'
                   ? 'bg-terminal-amber/15 text-terminal-amber'
                   : 'bg-terminal-red/15 text-terminal-red'
             }`}>{pulseLabel}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-[10px] font-mono max-w-[260px]">
+                <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </TooltipProvider>
 
@@ -126,8 +123,8 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
           </Dialog>
         )}
 
-        {/* Sync Stack — button on top, timestamp below */}
-        <div className="flex flex-col items-center">
+        {/* Sync — inline */}
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -136,11 +133,11 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
             className="font-mono text-[10px] sm:text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary px-2 sm:px-3"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'SYNCING...' : 'SYNC DATA'}
+            {isSyncing ? 'SYNCING...' : 'SYNC'}
           </Button>
           {lastSynced && (
-            <span className={`text-[8px] font-mono mt-1 ${syncFailed ? 'text-destructive' : 'text-muted-foreground'}`}>
-              Last Update: {lastSynced}{syncFailed ? ' ✗' : ''}
+            <span className={`text-[8px] font-mono ${syncFailed ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {lastSynced}{syncFailed ? ' ✗' : ''}
             </span>
           )}
         </div>

@@ -26,13 +26,11 @@ export function TopNav() {
         <Building2 className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Commercial REITs</span>
         <span className="sm:hidden">REITs</span>
-        <span className="px-1 py-0 rounded text-[8px] bg-terminal-blue/15 text-terminal-blue">REIT</span>
       </RouterNavLink>
       <RouterNavLink to="/invits" className={linkClass}>
         <Zap className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Infrastructure InvITs</span>
         <span className="sm:hidden">InvITs</span>
-        <span className="px-1 py-0 rounded text-[8px] bg-teal-500/15 text-teal-400">InvIT</span>
       </RouterNavLink>
       <RouterNavLink to="/about" className={linkClass}>
         <BookOpen className="h-3.5 w-3.5" />
