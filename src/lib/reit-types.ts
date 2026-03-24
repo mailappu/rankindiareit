@@ -81,9 +81,9 @@ export const STRATEGY_PRESETS: Record<Exclude<StrategyPreset, 'custom'>, Strateg
   riskAverse: { yield: 20, safety: 60, value: 20, growth: 0, pipeline: 0 },
 };
 
-export const DEFAULT_GSEC_YIELD = 6.77;
-export const DATA_VERIFIED_DATE = 'March 21, 2026';
-export const CURRENT_DATE = '2026-03-21';
+export const DEFAULT_GSEC_YIELD = 6.84;
+export const DATA_VERIFIED_DATE = 'March 24, 2026';
+export const CURRENT_DATE = '2026-03-24';
 
 // Quarterly distributions (most recent first, verified Mar 21 2026)
 export const QUARTERLY_DISTRIBUTIONS: Record<string, { quarter: string; amount: number }[]> = {
