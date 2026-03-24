@@ -15,6 +15,13 @@ interface InvITTableProps {
   preset?: string;
 }
 
+const SCORE_TOOLTIPS: Record<string, string> = {
+  finalScore: 'Weighted composite of DivScore, SafetyScore & GrowthScore based on your selected strategy preset.',
+  divScore: '(Post-Tax Yield / G-Sec Yield) × 100. Measures yield premium over the risk-free benchmark.',
+  safetyScore: '(Availability × 40%) + (Contract Life/30 × 40%) + ((1−LTV) × 20%). Higher = more defensive.',
+  growthScore: 'Weighted blend of 1Y (40%), 3Y (35%), 5Y (25%) price CAGR. Road/Toll gets 1.2× growth weight.',
+};
+
 const COLUMNS: { key: SortKey; label: string; format?: (v: any) => string }[] = [
   { key: 'name', label: 'InvIT' },
   { key: 'sector', label: 'Type' },
@@ -293,10 +300,20 @@ export function InvITTable({ data, gsecYield, taxRate, preset }: InvITTableProps
                   >
                     <div className="flex items-center gap-1">
                       {col.label}
-                      {col.key === 'finalScore' && preset && (
+                      {SCORE_TOOLTIPS[col.key] && (
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="text-terminal-amber cursor-help"><Info className="h-2.5 w-2.5" /></span>
+                          </TooltipTrigger>
+                          <TooltipContent className="text-[10px] font-mono max-w-[260px]">
+                            {SCORE_TOOLTIPS[col.key]}
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {col.key === 'finalScore' && preset && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-primary cursor-help text-[8px]">({STRATEGY_LABELS[preset] || preset})</span>
                           </TooltipTrigger>
                           <TooltipContent className="text-xs font-mono">
                             Ranking weighted for {STRATEGY_LABELS[preset] || preset} strategy
