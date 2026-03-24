@@ -184,7 +184,7 @@ export default function Index() {
       setGsecStatus(gsecResult.status);
 
       if (gsecResult.status === 'fallback') {
-        toast.warning('Live G-Sec unavailable. Defaulting to 6.77% (Mar 21 benchmark).', {
+        toast.warning('Live G-Sec unavailable. Defaulting to 6.84% (Mar 24 benchmark).', {
           description: 'Dividend Score calculation uses fallback rate. Ranking is unaffected.',
         });
       }
@@ -252,7 +252,7 @@ export default function Index() {
           });
         } else if (result.errors.length === 0) {
           toast.success('Sync Complete', {
-            description: `Data is current as of Mar 21, 2026. ${result.checkedCount} sources verified.`,
+            description: `Data is current as of Mar 24, 2026. ${result.checkedCount} sources verified.`,
           });
         }
 

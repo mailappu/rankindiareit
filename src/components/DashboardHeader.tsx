@@ -70,7 +70,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
                     <p>The 10-Year Indian Government Bond (G-Sec) represents the 'Risk-Free Rate'. REITs must yield significantly more than this to compensate for property and market risks.</p>
                   </TooltipContent>
                 </Tooltip>
-                <span title="Verified Mar 21, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
+                <span title="Verified Mar 24, 2026"><BadgeCheck className="h-3.5 w-3.5 text-terminal-green" /></span>
                 <span className={`text-[8px] px-1 py-0.5 rounded uppercase ${
                   gsecStatus === 'live'
                     ? 'bg-terminal-green/15 text-terminal-green'
@@ -90,7 +90,7 @@ export function DashboardHeader({ gsecYield, gsecStatus, lastSynced, syncFailed,
                       ? 'Fetched live from public bond data (cached for 4 hours). All DivScores recalculate automatically when this changes by ≥0.02%.'
                       : gsecStatus === 'cached'
                         ? 'Using cached rate (over 4 hours old). Click Smart Sync to refresh.'
-                        : 'Using verified fallback rate (Mar 21, 2026). Click Smart Sync to fetch live rate.'}
+                        : 'Using verified fallback rate (Mar 24, 2026). Click Smart Sync to fetch live rate.'}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
