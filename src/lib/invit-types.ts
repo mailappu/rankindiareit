@@ -50,7 +50,7 @@ export const BSE_INVIT_SCRIP_CODES: Record<string, string> = {
   pginvit: '543620',
   irbinvit: '541956',
   nhit: '543985',
-  bhinvit: '544173',
+  bhinvit: '544137',
 };
 
 export const INVIT_NAMES: Record<string, string> = {
