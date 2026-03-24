@@ -352,6 +352,9 @@ export default function Index() {
         syncErrors={syncErrors}
         taxRate={taxRate}
         onTaxRateChange={setTaxRate}
+        onRefreshData={handleRefreshData}
+        isRefreshingData={isRefreshingData}
+        lastDataSync={lastDataSync}
       />
 
       <main className="flex-1 px-3 sm:px-6 py-4 space-y-4 max-w-[1600px] mx-auto w-full">
