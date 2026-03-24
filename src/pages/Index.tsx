@@ -7,6 +7,7 @@ import { TerminologyCard } from '@/components/TerminologyCard';
 import { calculateScores } from '@/lib/reit-scoring';
 import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
+import { discoverREITData, getCachedDiscovery, type DataDiscoveryResult } from '@/lib/data-discovery-service';
 import {
   LIVE_REIT_DATA,
   DEFAULT_GSEC_YIELD,
@@ -43,6 +44,11 @@ export default function Index() {
   const [sourceStatus, setSourceStatus] = useState<Record<string, 'ok' | 'error'>>({});
   const [discoveredUrls, setDiscoveredUrls] = useState<Record<string, DiscoveredUrl>>(getStoredDiscoveredUrls);
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>(getStoredCMPCache);
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
+  const [lastDataSync, setLastDataSync] = useState<string | null>(() => {
+    const cached = getCachedDiscovery();
+    return cached?.syncedAt || null;
+  });
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights, taxRate),
@@ -287,6 +293,52 @@ export default function Index() {
     }
   }, [gsecYield]);
 
+  const handleRefreshData = useCallback(async () => {
+    setIsRefreshingData(true);
+    try {
+      console.log('[BSE Data] Starting BSE XBRL data discovery...');
+      const result = await discoverREITData(undefined, true);
+
+      setLastDataSync(result.syncedAt);
+
+      if (result.errors.length > 0) {
+        result.errors.forEach(err => {
+          toast.warning('BSE Data Warning', { description: err });
+        });
+      }
+
+      if (result.totalFilings > 0) {
+        // Check for review-required metrics
+        const reviewRequired = Object.values(result.metrics).filter(m => m.reviewRequired);
+        const extracted = Object.values(result.metrics).filter(m => !m.reviewRequired);
+
+        if (extracted.length > 0) {
+          toast.success(`BSE Data: ${result.totalFilings} filings processed`, {
+            description: `Extracted metrics for ${extracted.length} REITs. ${reviewRequired.length > 0 ? `${reviewRequired.length} need manual review.` : ''}`,
+          });
+        } else {
+          toast.info(`BSE Data: ${result.totalFilings} filings found`, {
+            description: 'XBRL tags not matched — metrics flagged for manual review. Using verified baseline values.',
+          });
+        }
+
+        // Log discovered metrics
+        for (const [id, metrics] of Object.entries(result.metrics)) {
+          console.log(`[BSE Data] ${id}: source=${metrics.source}, reviewRequired=${metrics.reviewRequired}`, metrics);
+        }
+      } else {
+        toast.info('No new BSE filings found in the last 6 months.');
+      }
+    } catch (err) {
+      console.error('[BSE Data] Error:', err);
+      toast.error('BSE Data fetch failed', {
+        description: err instanceof Error ? err.message : 'Could not reach BSE API.',
+      });
+    } finally {
+      setIsRefreshingData(false);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <DashboardHeader
@@ -300,6 +352,9 @@ export default function Index() {
         syncErrors={syncErrors}
         taxRate={taxRate}
         onTaxRateChange={setTaxRate}
+        onRefreshData={handleRefreshData}
+        isRefreshingData={isRefreshingData}
+        lastDataSync={lastDataSync}
       />
 
       <main className="flex-1 px-3 sm:px-6 py-4 space-y-4 max-w-[1600px] mx-auto w-full">
