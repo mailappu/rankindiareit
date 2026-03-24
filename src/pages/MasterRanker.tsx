@@ -112,7 +112,7 @@ export default function MasterRanker() {
         assetType: 'InvIT',
         cmp: i.cmp,
         postTaxYield: i.postTaxYield,
-        ltv: invitBase?.ltv ? invitBase.ltv * 100 : 0,
+        ltv: invitBase?.ltv ?? 0,
         marketCap: INVIT_MARKET_CAPS[i.id] ?? 0,
         finalScore: i.finalScore,
         isLiveCMP: i.isLiveCMP,
