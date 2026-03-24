@@ -148,15 +148,15 @@ function REITRow({
         if (col.key === 'cmp') {
           return (
             <td key={col.key} className="px-3 py-2.5">
-              <div className="flex items-center gap-1">
+              <div className="flex flex-col">
                 <span className={isOfflinePrice ? 'text-terminal-amber' : 'text-foreground'}>
                   ₹{reit.cmp.toFixed(2)}
                 </span>
                 {isLivePrice ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="flex items-center gap-0.5">
-                        <Radio className="h-2.5 w-2.5 text-terminal-green animate-pulse" />
+                      <span className="flex items-center gap-0.5 mt-0.5">
+                        <Radio className="h-2 w-2 text-terminal-green animate-pulse" />
                         <span className="text-[7px] px-1 py-0 rounded bg-terminal-green/15 text-terminal-green font-mono font-semibold">
                           LIVE
                         </span>
@@ -169,7 +169,12 @@ function REITRow({
                 ) : (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <WifiOff className="h-3 w-3 text-terminal-amber shrink-0" />
+                      <span className="flex items-center gap-0.5 mt-0.5">
+                        <WifiOff className="h-2 w-2 text-terminal-amber" />
+                        <span className="text-[7px] px-1 py-0 rounded bg-terminal-amber/15 text-terminal-amber font-mono font-semibold">
+                          CACHED
+                        </span>
+                      </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-[10px] font-mono max-w-[220px]">
                       <p>API unavailable. Showing price from {priceInfo?.fetchedAt ? new Date(priceInfo.fetchedAt).toLocaleTimeString('en-IN') : 'Mar 21 close'}.</p>
@@ -184,11 +189,11 @@ function REITRow({
         if (col.key === 'nav') {
           return (
             <td key={col.key} className="px-3 py-2.5">
-              <div className="flex items-center gap-1">
+              <div className="flex flex-col">
                 <span className="text-foreground">₹{reit.nav}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-[8px] px-1 py-0.5 rounded bg-terminal-green/15 text-terminal-green font-mono">
+                    <span className="text-[7px] px-1 py-0 rounded bg-terminal-green/15 text-terminal-green font-mono mt-0.5 w-fit">
                       VERIFIED
                     </span>
                   </TooltipTrigger>
