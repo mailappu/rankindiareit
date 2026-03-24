@@ -44,6 +44,11 @@ export default function Index() {
   const [sourceStatus, setSourceStatus] = useState<Record<string, 'ok' | 'error'>>({});
   const [discoveredUrls, setDiscoveredUrls] = useState<Record<string, DiscoveredUrl>>(getStoredDiscoveredUrls);
   const [livePrices, setLivePrices] = useState<Record<string, LivePrice>>(getStoredCMPCache);
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
+  const [lastDataSync, setLastDataSync] = useState<string | null>(() => {
+    const cached = getCachedDiscovery();
+    return cached?.syncedAt || null;
+  });
 
   const scoredData = useMemo(
     () => calculateScores(reitData, gsecYield, weights, taxRate),
