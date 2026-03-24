@@ -18,9 +18,8 @@ import {
 import type { REITData, ScoreBreakdown } from '@/lib/reit-types';
 import type { InvITData, InvITScoreBreakdown } from '@/lib/invit-types';
 import { computeInvITPostTaxYield, computeInvITDivYield, LIVE_INVIT_DATA } from '@/lib/invit-types';
-import { ArrowUpDown, ArrowUp, ArrowDown, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { REITErrorBoundary } from '@/components/REITErrorBoundary';
 import { toast } from 'sonner';
 
@@ -29,15 +28,11 @@ interface UnifiedRow {
   name: string;
   ticker: string;
   assetType: 'REIT' | 'InvIT';
-  sector: string;
   cmp: number;
-  divYield: number;
   postTaxYield: number;
-  postTaxAlpha: number; // postTaxYield - gsecYield
+  ltv: number;
+  marketCap: number; // in ₹ Crores
   finalScore: number;
-  rank: number;
-  safetyScore: number;
-  growthScore: number;
   isLiveCMP: boolean;
 }
 
@@ -77,51 +72,42 @@ export default function MasterRanker() {
     const rows: UnifiedRow[] = [];
 
     for (const r of scoredReits) {
-      const postTaxYield = r.postTaxYield;
+      const reitBase = reitData.find(rd => rd.id === r.id);
       rows.push({
         id: r.id,
         name: r.name,
         ticker: r.ticker,
         assetType: 'REIT',
-        sector: r.sector,
         cmp: r.cmp,
-        divYield: r.divYield,
-        postTaxYield,
-        postTaxAlpha: postTaxYield - gsecYield,
+        postTaxYield: r.postTaxYield,
+        ltv: reitBase?.ltv ?? 0,
+        marketCap: REIT_MARKET_CAPS[r.id] ?? 0,
         finalScore: r.finalScore,
-        rank: 0,
-        safetyScore: r.safetyScore,
-        growthScore: r.growthScore,
         isLiveCMP: r.isLiveCMP,
       });
     }
 
     for (const i of scoredInvits) {
-      const postTaxYield = i.postTaxYield;
+      const invitBase = invitData.find(iv => iv.id === i.id);
       rows.push({
         id: i.id,
         name: i.name,
         ticker: i.ticker,
         assetType: 'InvIT',
-        sector: i.sector,
         cmp: i.cmp,
-        divYield: i.divYield,
-        postTaxYield,
-        postTaxAlpha: postTaxYield - gsecYield,
+        postTaxYield: i.postTaxYield,
+        ltv: invitBase?.ltv ? invitBase.ltv * 100 : 0, // InvIT LTV stored as decimal
+        marketCap: INVIT_MARKET_CAPS[i.id] ?? 0,
         finalScore: i.finalScore,
-        rank: 0,
-        safetyScore: i.safetyScore,
-        growthScore: i.growthScore,
         isLiveCMP: i.isLiveCMP,
       });
     }
 
-    // Rank by finalScore descending (strategy-weighted)
-    rows.sort((a, b) => b.finalScore - a.finalScore);
-    rows.forEach((r, i) => { r.rank = i + 1; });
+    // Sort by post-tax yield descending
+    rows.sort((a, b) => b.postTaxYield - a.postTaxYield);
 
     return rows;
-  }, [scoredReits, scoredInvits, gsecYield]);
+  }, [scoredReits, scoredInvits, gsecYield, reitData, invitData]);
 
   // Auto-fetch on mount
   useEffect(() => {
