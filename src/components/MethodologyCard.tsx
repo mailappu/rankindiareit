@@ -32,8 +32,8 @@ export function MethodologyCard() {
             </div>
             <div className="bg-secondary/50 rounded p-3 space-y-1.5">
               <div className="text-terminal-blue font-semibold text-[11px]">SafetyScore</div>
-              <code className="text-[10px] text-muted-foreground block">= (Occupancy + (100 - LTV) + (WALE × 10)) / 3</code>
-              <p className="text-[10px] text-muted-foreground">Direct WALE × 10 scaling. No sector adjustment in this formula.</p>
+              <code className="text-[10px] text-muted-foreground block">= (Occupancy × 0.40) + (WALE/10 × 0.40) + ((1-LTV) × 0.20)</code>
+              <p className="text-[10px] text-muted-foreground">Weighted: 40% occupancy, 40% lease duration, 20% leverage (inverse).</p>
             </div>
             <div className="bg-secondary/50 rounded p-3 space-y-1.5">
               <div className="text-terminal-cyan font-semibold text-[11px]">GrowthScore</div>
