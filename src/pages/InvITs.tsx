@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { DashboardHeader } from '@/components/DashboardHeader';
+import { TopNav } from '@/components/TopNav';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { InvITTable } from '@/components/InvITTable';
 import { calculateInvITScores } from '@/lib/invit-scoring';
@@ -104,14 +104,13 @@ export default function InvITs() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <DashboardHeader
+      <TopNav
         gsecYield={gsecYield}
         gsecStatus={gsecStatus}
         lastSynced={lastSynced}
         syncFailed={syncFailed}
         isSyncing={isSyncing}
         onSync={handleSync}
-        provenanceBadge={null}
         syncErrors={[]}
         taxRate={taxRate}
         onTaxRateChange={setTaxRate}
