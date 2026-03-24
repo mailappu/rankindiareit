@@ -62,7 +62,7 @@ export default function MasterRanker() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
   const [syncErrors, setSyncErrors] = useState<SyncError[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [reitData, setReitData] = useState(() => {
     const cachedPrices = getStoredCMPCache();
@@ -112,60 +112,31 @@ export default function MasterRanker() {
         assetType: 'InvIT',
         cmp: i.cmp,
         postTaxYield: i.postTaxYield,
-        ltv: invitBase?.ltv ? invitBase.ltv * 100 : 0, // InvIT LTV stored as decimal
+        ltv: invitBase?.ltv ? invitBase.ltv * 100 : 0,
         marketCap: INVIT_MARKET_CAPS[i.id] ?? 0,
         finalScore: i.finalScore,
         isLiveCMP: i.isLiveCMP,
       });
     }
 
-    // Sort by post-tax yield descending
     rows.sort((a, b) => b.postTaxYield - a.postTaxYield);
 
     return rows;
   }, [scoredReits, scoredInvits, gsecYield, reitData, invitData]);
 
-  // Auto-fetch on mount
+  // Load cached data on mount — no network calls
   useEffect(() => {
-    const fetchOnMount = async () => {
-      setIsLoading(true);
-
+    const cachedGsec = localStorage.getItem('gsec_yield');
+    if (cachedGsec) {
       try {
-        const result = await getGSecYield();
-        setGsecYield(result.yield);
-        setGsecStatus(result.status);
-      } catch {
-        setGsecStatus('fallback');
-      }
-
-      // Fetch REIT CMP
-      try {
-        const { data, error } = await supabase.functions.invoke('fetch-cmp');
-        if (!error && data?.success && Array.isArray(data.prices)) {
-          const priceMap: Record<string, LivePrice> = {};
-          for (const p of data.prices) {
-            priceMap[p.reitId] = {
-              reitId: p.reitId, cmp: p.cmp, isLive: p.isLive,
-              fetchedAt: p.fetchedAt, error: p.error,
-              growth1Y: p.growth1Y, growth3Y: p.growth3Y,
-              growth5Y: p.growth5Y, cagrSource: p.cagrSource,
-            };
-          }
-          setReitData(applyLivePrices(LIVE_REIT_DATA, priceMap));
-          localStorage.setItem('reit_cmp_cache', JSON.stringify(priceMap));
+        const parsed = JSON.parse(cachedGsec);
+        if (parsed.yield) {
+          setGsecYield(parsed.yield);
+          setGsecStatus(parsed.status || 'cached');
         }
       } catch {}
-
-      // Fetch InvIT data
-      try {
-        const result = await discoverInvITData();
-        setInvitData(result.invits);
-      } catch {}
-
-      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
-      setIsLoading(false);
-    };
-    fetchOnMount();
+    }
+    setLastSynced(localStorage.getItem('last_sync_time') || null);
   }, []);
 
   const handleSync = useCallback(async () => {
@@ -175,6 +146,7 @@ export default function MasterRanker() {
       const gsecResult = await getGSecYield();
       setGsecStatus(gsecResult.status);
       if (gsecResult.yield !== gsecYield) setGsecYield(gsecResult.yield);
+      localStorage.setItem('gsec_yield', JSON.stringify({ yield: gsecResult.yield, status: gsecResult.status }));
 
       const syncResult = await performSmartSync();
       setReitData(applyLivePrices(LIVE_REIT_DATA, syncResult.livePrices));
@@ -182,8 +154,10 @@ export default function MasterRanker() {
       const invitResult = await discoverInvITData();
       setInvitData(invitResult.invits);
 
+      const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      setLastSynced(syncTime);
+      localStorage.setItem('last_sync_time', syncTime);
       toast.success('Master Ranker synced');
-      setLastSynced(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }));
     } catch (err) {
       setSyncFailed(true);
       toast.error('Sync failed');
