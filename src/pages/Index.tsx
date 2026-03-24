@@ -293,6 +293,52 @@ export default function Index() {
     }
   }, [gsecYield]);
 
+  const handleRefreshData = useCallback(async () => {
+    setIsRefreshingData(true);
+    try {
+      console.log('[BSE Data] Starting BSE XBRL data discovery...');
+      const result = await discoverREITData(undefined, true);
+
+      setLastDataSync(result.syncedAt);
+
+      if (result.errors.length > 0) {
+        result.errors.forEach(err => {
+          toast.warning('BSE Data Warning', { description: err });
+        });
+      }
+
+      if (result.totalFilings > 0) {
+        // Check for review-required metrics
+        const reviewRequired = Object.values(result.metrics).filter(m => m.reviewRequired);
+        const extracted = Object.values(result.metrics).filter(m => !m.reviewRequired);
+
+        if (extracted.length > 0) {
+          toast.success(`BSE Data: ${result.totalFilings} filings processed`, {
+            description: `Extracted metrics for ${extracted.length} REITs. ${reviewRequired.length > 0 ? `${reviewRequired.length} need manual review.` : ''}`,
+          });
+        } else {
+          toast.info(`BSE Data: ${result.totalFilings} filings found`, {
+            description: 'XBRL tags not matched — metrics flagged for manual review. Using verified baseline values.',
+          });
+        }
+
+        // Log discovered metrics
+        for (const [id, metrics] of Object.entries(result.metrics)) {
+          console.log(`[BSE Data] ${id}: source=${metrics.source}, reviewRequired=${metrics.reviewRequired}`, metrics);
+        }
+      } else {
+        toast.info('No new BSE filings found in the last 6 months.');
+      }
+    } catch (err) {
+      console.error('[BSE Data] Error:', err);
+      toast.error('BSE Data fetch failed', {
+        description: err instanceof Error ? err.message : 'Could not reach BSE API.',
+      });
+    } finally {
+      setIsRefreshingData(false);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <DashboardHeader
