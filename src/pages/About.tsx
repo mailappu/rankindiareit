@@ -9,7 +9,7 @@ export default function About() {
         <div>
           <h1 className="text-xl font-bold text-foreground font-mono mb-1">About & Methodology</h1>
           <p className="text-xs font-mono text-muted-foreground">
-            How RankIndia scores, ranks, and benchmarks Indian REITs and InvITs.
+            How RealInfra scores, ranks, and benchmarks Indian REITs and InvITs.
           </p>
         </div>
 
@@ -158,7 +158,7 @@ export default function About() {
               </div>
             </div>
             <p>
-              RankIndia applies sector-specific scoring adjustments: Road/Toll InvITs receive a 1.2× growth 
+              RealInfra applies sector-specific scoring adjustments: Road/Toll InvITs receive a 1.2× growth 
               multiplier (WPI-linked hikes), while Transmission InvITs use 0.8× (fixed annuity).
             </p>
           </div>

@@ -52,7 +52,7 @@ export function TopNav({
         {/* Brand */}
         <div className="flex items-center gap-1.5 mr-2 shrink-0">
           <BarChart3 className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-mono font-bold text-foreground">RankIndia</span>
+          <span className="text-xs font-mono font-bold text-foreground">RealInfra</span>
         </div>
 
         {/* Nav Links */}
