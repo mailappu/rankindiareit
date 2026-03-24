@@ -5,17 +5,29 @@ const corsHeaders = {
 
 // BSE scrip codes for Indian REITs
 const BSE_SCRIP_CODES: Record<string, string> = {
+  // REITs
   embassy: '542602',
   mindspace: '543217',
   brookfield: '543261',
   nexus: '543913',
+  // InvITs
+  indigrid: '540565',
+  pginvit: '543620',
+  irbinvit: '541956',
+  nhit: '543985',
+  bhinvit: '544173',
 };
 
-const REIT_NAMES: Record<string, string> = {
+const ENTITY_NAMES: Record<string, string> = {
   embassy: 'Embassy Office Parks REIT',
   mindspace: 'Mindspace Business Parks REIT',
   brookfield: 'Brookfield India Real Estate Trust',
   nexus: 'Nexus Select Trust',
+  indigrid: 'IndiGrid Infrastructure Trust',
+  pginvit: 'PowerGrid Infrastructure InvIT',
+  irbinvit: 'IRB InvIT Fund',
+  nhit: 'National Highways Infra Trust',
+  bhinvit: 'Bharat Highways InvIT',
 };
 
 interface BSEAnnouncement {
@@ -125,7 +137,7 @@ async function fetchBSEAnnouncements(
 
         filings.push({
           reitId,
-          reitName: REIT_NAMES[reitId] || reitId,
+          reitName: ENTITY_NAMES[reitId] || reitId,
           filingDate: ann.NEWS_DT,
           subject: ann.NEWSSUB || '',
           category: ann.CATEGORYNAME || category,
