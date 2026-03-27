@@ -59,11 +59,11 @@ export function TopNav({
         </div>
 
         {/* Nav Links */}
-        <RouterNavLink to="/ranker" className={linkClass}>
+        <RouterNavLink to="/" className={linkClass}>
           <Trophy className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Ranker</span>
         </RouterNavLink>
-        <RouterNavLink to="/" className={linkClass}>
+        <RouterNavLink to="/reits" className={linkClass}>
           <Building2 className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">REITs</span>
         </RouterNavLink>
