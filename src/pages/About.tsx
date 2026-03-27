@@ -1,4 +1,4 @@
-import { BookOpen, FileCode, Scale, Layers } from 'lucide-react';
+import { FileCode, Scale, Layers } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 
 export default function About() {
