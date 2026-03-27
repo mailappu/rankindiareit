@@ -66,31 +66,19 @@ export function TerminologyCard({ defaultExpanded = false }: { defaultExpanded?:
       </button>
 
       {expanded && (
-        <div className="mt-4 space-y-4">
-          {/* Common Terms */}
-          <div className="space-y-2">
-            <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-foreground border-b border-border/50 pb-1.5">
-              Common Terms
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {COMMON_TERMS.map(t => <TermItem key={t.term} t={t} />)}
-            </div>
+        <div className="mt-4 space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {COMMON_TERMS.map(t => <TermItem key={t.term} t={t} />)}
           </div>
-
-          {/* Asset-Specific Terms side by side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-primary border-b border-border/50 pb-1.5">
-                REIT-Specific
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {ASSET_SPECIFIC.map(t => <TermItem key={t.term} t={t} />)}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {SHARED_TERMS.map(t => (
+              <div key={t.term} className="sm:col-span-2">
+                <TermItem t={t} />
               </div>
-              {REIT_SPECIFIC.map(t => <TermItem key={t.term} t={t} />)}
-            </div>
-            <div className="space-y-2">
-              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-terminal-amber border-b border-border/50 pb-1.5">
-                InvIT-Specific
-              </div>
-              {INVIT_SPECIFIC.map(t => <TermItem key={t.term} t={t} />)}
-            </div>
+            ))}
           </div>
         </div>
       )}
