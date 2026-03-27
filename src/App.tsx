@@ -24,8 +24,8 @@ const App = () => (
         <BrowserRouter>
             <div className="min-h-screen flex flex-col bg-background text-foreground">
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/ranker" element={<MasterRanker />} />
+              <Route path="/" element={<MasterRanker />} />
+              <Route path="/reits" element={<Index />} />
               <Route path="/invits" element={<InvITs />} />
               <Route path="/terminology" element={<Terminology />} />
               <Route path="/about" element={<About />} />
