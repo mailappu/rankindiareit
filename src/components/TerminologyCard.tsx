@@ -15,17 +15,17 @@ const COMMON_TERMS: Term[] = [
   { term: 'Market Cap', short: 'Total market value of all units.', detail: 'CMP × Total Units Outstanding. Indicates size and liquidity in the market.', good: 'Higher = more liquid', color: 'text-foreground' },
   { term: 'NAV (Net Asset Value)', short: 'What is the asset actually worth?', detail: 'Appraised value of all properties/assets minus liabilities, per unit. CMP < NAV = undervalued. CMP > NAV = market pricing in growth.', good: 'CMP < NAV = Undervalued', color: 'text-terminal-cyan' },
   { term: 'LTV (Loan-to-Value)', short: 'How leveraged is it?', detail: 'Total debt divided by total asset value. Lower LTV = less risk. SEBI mandates < 49%. Below 30% is conservative.', good: '< 30%', color: 'text-terminal-amber' },
-  { term: 'Pipeline', short: 'What growth is coming?', detail: 'Total area/value under construction or planned for acquisition. Signals future income growth and NAV expansion.', good: 'Higher = more growth', color: 'text-foreground' },
 ];
 
-const REIT_SPECIFIC: Term[] = [
+const ASSET_SPECIFIC: Term[] = [
   { term: 'Occupancy Rate', short: 'How full is the property?', detail: 'Percentage of total leasable area currently occupied by tenants. Higher occupancy = stable rental income and strong demand.', good: '> 90%', color: 'text-terminal-green', badge: 'REIT' },
+  { term: 'Availability', short: 'Operational uptime of infrastructure asset.', detail: 'Percentage of time the asset is available for use (e.g., road open for tolling, transmission line energized). Replaces "Occupancy" in InvIT context.', good: '> 95%', color: 'text-terminal-green', badge: 'InvIT' },
   { term: 'WALE (Weighted Avg Lease Expiry)', short: 'How long are tenants locked in?', detail: 'Average remaining lease term weighted by area. Higher WALE = predictable cash flows. Office REITs: 5–8Y, Retail: 3–5Y.', good: '> 5Y (Office)', color: 'text-terminal-blue', badge: 'REIT' },
+  { term: 'Concession Life', short: 'Remaining life of the infrastructure concession.', detail: 'Years remaining on the government concession agreement. At expiry, the asset reverts to the authority. Normalized to 30Y max for scoring.', good: '> 15 years', color: 'text-terminal-blue', badge: 'InvIT' },
 ];
 
-const INVIT_SPECIFIC: Term[] = [
-  { term: 'Availability', short: 'Operational uptime of infrastructure asset.', detail: 'Percentage of time the asset is available for use (e.g., road open for tolling, transmission line energized). Replaces "Occupancy" in InvIT context.', good: '> 95%', color: 'text-terminal-green', badge: 'InvIT' },
-  { term: 'Concession Life', short: 'Remaining life of the infrastructure concession.', detail: 'Years remaining on the government concession agreement. At expiry, the asset reverts to the authority. Normalized to 30Y max for scoring.', good: '> 15 years', color: 'text-terminal-blue', badge: 'InvIT' },
+const SHARED_TERMS: Term[] = [
+  { term: 'Pipeline', short: 'What growth is coming?', detail: 'Total area/value under construction or planned for acquisition. Signals future income growth and NAV expansion.', good: 'Higher = more growth', color: 'text-foreground' },
 ];
 
 function TermItem({ t }: { t: Term }) {
