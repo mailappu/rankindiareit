@@ -13,6 +13,62 @@ export default function About() {
           </p>
         </div>
 
+        {/* Equity vs Hybrid */}
+        <section className="card-terminal p-4 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-accent" />
+            <h2 className="text-sm font-bold font-mono text-foreground">Equity vs. Hybrid Classification (2026 Update)</h2>
+          </div>
+          <div className="space-y-3 text-xs font-mono text-muted-foreground leading-relaxed">
+            <p>
+              As of FY26, SEBI has not yet formally classified Indian REITs into 'Equity' and 'Hybrid' 
+              sub-categories the way mutual funds are. However, the market is evolving:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
+                <div className="text-terminal-blue font-semibold text-[11px]">Pure-Play REITs</div>
+                <p className="text-[10px]">
+                  Embassy, Mindspace, Brookfield — primarily office assets generating rental income. 
+                  Distribution is mostly from lease rentals. Behave like <span className="text-foreground font-semibold">equity-like instruments</span> with 
+                  property market exposure.
+                </p>
+              </div>
+              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
+                <div className="text-accent font-semibold text-[11px]">Retail/Hybrid REITs</div>
+                <p className="text-[10px]">
+                  Nexus Select Trust — mixed retail assets with higher consumer cyclicality. 
+                  Revenue tied to tenant sales, footfall, and consumption patterns. 
+                  Higher growth potential but more volatile distributions.
+                </p>
+              </div>
+            </div>
+            <div className="bg-secondary/50 rounded p-3 space-y-2">
+              <div className="text-foreground font-semibold text-[11px]">InvIT Classification</div>
+              <p className="text-[10px]">
+                Infrastructure InvITs are further segmented by asset type:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
+                <div>
+                  <span className="text-teal-400 font-semibold">Road/Toll:</span> IRB, NHIT, Bharat Highways — 
+                  WPI-linked toll hikes provide inflation protection. Finite concession life.
+                </div>
+                <div>
+                  <span className="text-teal-400 font-semibold">Transmission:</span> IndiGrid, PowerGrid — 
+                  Fixed annuity model with regulated returns. Lower growth, higher predictability.
+                </div>
+                <div>
+                  <span className="text-teal-400 font-semibold">Future:</span> Data centers, renewable energy 
+                  InvITs expected in 2026-2027 pipeline.
+                </div>
+              </div>
+            </div>
+            <p>
+              RealInfra applies sector-specific scoring adjustments: Road/Toll InvITs receive a 1.2× growth 
+              multiplier (WPI-linked hikes), while Transmission InvITs use 0.8× (fixed annuity).
+            </p>
+          </div>
+        </section>
+
         {/* Taxation Logic */}
         <section className="card-terminal p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2">
@@ -104,62 +160,6 @@ export default function About() {
               The BSE Corporate Filings API serves as our primary data source. We query for 
               specific scrip codes and filter for 'Financial Results' XBRL filings. The XML 
               is parsed client-side using <code className="text-primary">fast-xml-parser</code>.
-            </p>
-          </div>
-        </section>
-
-        {/* Equity vs Hybrid */}
-        <section className="card-terminal p-4 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-accent" />
-            <h2 className="text-sm font-bold font-mono text-foreground">Equity vs. Hybrid Classification (2026 Update)</h2>
-          </div>
-          <div className="space-y-3 text-xs font-mono text-muted-foreground leading-relaxed">
-            <p>
-              As of FY26, SEBI has not yet formally classified Indian REITs into 'Equity' and 'Hybrid' 
-              sub-categories the way mutual funds are. However, the market is evolving:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                <div className="text-terminal-blue font-semibold text-[11px]">Pure-Play REITs</div>
-                <p className="text-[10px]">
-                  Embassy, Mindspace, Brookfield — primarily office assets generating rental income. 
-                  Distribution is mostly from lease rentals. Behave like <span className="text-foreground font-semibold">equity-like instruments</span> with 
-                  property market exposure.
-                </p>
-              </div>
-              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                <div className="text-accent font-semibold text-[11px]">Retail/Hybrid REITs</div>
-                <p className="text-[10px]">
-                  Nexus Select Trust — mixed retail assets with higher consumer cyclicality. 
-                  Revenue tied to tenant sales, footfall, and consumption patterns. 
-                  Higher growth potential but more volatile distributions.
-                </p>
-              </div>
-            </div>
-            <div className="bg-secondary/50 rounded p-3 space-y-2">
-              <div className="text-foreground font-semibold text-[11px]">InvIT Classification</div>
-              <p className="text-[10px]">
-                Infrastructure InvITs are further segmented by asset type:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
-                <div>
-                  <span className="text-teal-400 font-semibold">Road/Toll:</span> IRB, NHIT, Bharat Highways — 
-                  WPI-linked toll hikes provide inflation protection. Finite concession life.
-                </div>
-                <div>
-                  <span className="text-teal-400 font-semibold">Transmission:</span> IndiGrid, PowerGrid — 
-                  Fixed annuity model with regulated returns. Lower growth, higher predictability.
-                </div>
-                <div>
-                  <span className="text-teal-400 font-semibold">Future:</span> Data centers, renewable energy 
-                  InvITs expected in 2026-2027 pipeline.
-                </div>
-              </div>
-            </div>
-            <p>
-              RealInfra applies sector-specific scoring adjustments: Road/Toll InvITs receive a 1.2× growth 
-              multiplier (WPI-linked hikes), while Transmission InvITs use 0.8× (fixed annuity).
             </p>
           </div>
         </section>
