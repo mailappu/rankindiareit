@@ -164,45 +164,6 @@ export default function About() {
           </div>
         </section>
 
-        {/* Scoring Methodology */}
-        <section className="card-terminal p-4 sm:p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            <h2 className="text-sm font-bold font-mono text-foreground">Scoring Methodology</h2>
-          </div>
-          <div className="space-y-3 text-xs font-mono text-muted-foreground leading-relaxed">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                <div className="text-primary font-semibold text-[11px]">DivScore</div>
-                <code className="text-[10px] block">= (Post-Tax Yield / G-Sec Yield) × 100</code>
-                <p className="text-[10px]">Measures yield premium over the risk-free rate.</p>
-              </div>
-              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                <div className="text-accent font-semibold text-[11px]">ValueScore</div>
-                <code className="text-[10px] block">= ((NAV - CMP) / NAV) × 100</code>
-                <p className="text-[10px]">Discount to Net Asset Value. Higher = more undervalued.</p>
-              </div>
-              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                <div className="text-terminal-blue font-semibold text-[11px]">SafetyScore (REIT)</div>
-                <code className="text-[10px] block">= (Occ × 0.4) + (WALE/10 × 0.4) + ((1-LTV) × 0.2)</code>
-                <p className="text-[10px]">40% occupancy, 40% lease duration, 20% leverage.</p>
-              </div>
-              <div className="bg-secondary/50 rounded p-3 space-y-1.5">
-                <div className="text-teal-400 font-semibold text-[11px]">SafetyScore (InvIT)</div>
-                <code className="text-[10px] block">= (Avail% × 0.5) + (min(Life, 30) × 1.66)</code>
-                <p className="text-[10px]">Availability + remaining concession life.</p>
-              </div>
-            </div>
-            <div className="bg-secondary/50 rounded p-3">
-              <div className="text-foreground font-semibold text-[11px]">Strategy Weighting</div>
-              <div className="grid grid-cols-3 gap-2 mt-2 text-[10px]">
-                <div><span className="text-primary font-semibold">Income:</span> 70% Yield · 20% Safety · 10% Growth</div>
-                <div><span className="text-terminal-cyan font-semibold">Growth:</span> 60% Growth · 20% Yield · 20% Safety</div>
-                <div><span className="text-terminal-blue font-semibold">Risk Averse:</span> 60% Safety · 30% Yield · 10% Growth</div>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );
