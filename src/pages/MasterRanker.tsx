@@ -45,6 +45,7 @@ interface UnifiedRow {
   ticker: string;
   assetType: 'REIT' | 'InvIT';
   cmp: number;
+  nav: number;
   postTaxYield: number;
   ltv: number;
   marketCap: number; // in ₹ Crores
@@ -95,6 +96,7 @@ export default function MasterRanker() {
         ticker: r.ticker,
         assetType: 'REIT',
         cmp: r.cmp,
+        nav: reitBase?.nav ?? 0,
         postTaxYield: r.postTaxYield,
         ltv: reitBase?.ltv ?? 0,
         marketCap: REIT_MARKET_CAPS[r.id] ?? 0,
@@ -111,6 +113,7 @@ export default function MasterRanker() {
         ticker: i.ticker,
         assetType: 'InvIT',
         cmp: i.cmp,
+        nav: invitBase?.nav ?? 0,
         postTaxYield: i.postTaxYield,
         ltv: invitBase?.ltv ?? 0,
         marketCap: INVIT_MARKET_CAPS[i.id] ?? 0,
@@ -213,6 +216,7 @@ function MasterTable({ data, gsecYield }: { data: UnifiedRow[]; gsecYield: numbe
     { key: 'name', label: 'Asset' },
     { key: 'assetType', label: 'Type' },
     { key: 'cmp', label: 'CMP (₹)', align: 'right' },
+    { key: 'nav', label: 'NAV (₹)', align: 'right' },
     { key: 'postTaxYield', label: 'Post-Tax Yield', align: 'right' },
     { key: 'ltv', label: 'LTV', align: 'right' },
     { key: 'marketCap', label: 'Market Cap', align: 'right' },
@@ -301,6 +305,7 @@ function MasterRow({ row, formatMarketCap, gsecYield }: { row: UnifiedRow; forma
         </span>
       </td>
       <td className="px-3 py-2.5 text-right text-foreground">{row.cmp > 0 ? `₹${row.cmp.toFixed(2)}` : '—'}</td>
+      <td className="px-3 py-2.5 text-right text-foreground">{row.nav > 0 ? `₹${row.nav.toFixed(0)}` : '—'}</td>
       <td className="px-3 py-2.5 text-right">
         <span className={`font-bold ${row.postTaxYield > 0 ? yieldColor : 'text-muted-foreground'}`}>
           {row.postTaxYield > 0 ? `${row.postTaxYield.toFixed(2)}%` : '—'}
