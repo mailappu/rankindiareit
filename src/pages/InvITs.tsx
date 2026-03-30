@@ -4,6 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { InvITTable } from '@/components/InvITTable';
 import { calculateInvITScores } from '@/lib/invit-scoring';
 import { discoverInvITData } from '@/lib/invit-discovery-service';
+import { getStoredCMPCache, applyLivePricesToInvITs } from '@/lib/sync-engine';
 import { getGSecYield, type GSecStatus } from '@/lib/gsec-service';
 import { useTaxContext } from '@/contexts/TaxContext';
 import { DEFAULT_GSEC_YIELD } from '@/lib/reit-types';
@@ -17,7 +18,13 @@ export default function InvITs() {
   const [gsecStatus, setGsecStatus] = useState<GSecStatus>('fallback');
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [invitData, setInvitData] = useState<InvITData[]>(LIVE_INVIT_DATA);
+  const [invitData, setInvitData] = useState<InvITData[]>(() => {
+    const cachedPrices = getStoredCMPCache();
+    if (Object.keys(cachedPrices).length > 0) {
+      return applyLivePricesToInvITs(LIVE_INVIT_DATA, cachedPrices);
+    }
+    return LIVE_INVIT_DATA;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [syncFailed, setSyncFailed] = useState(false);
 

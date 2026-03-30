@@ -5,7 +5,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { calculateScores } from '@/lib/reit-scoring';
 import { calculateInvITScores } from '@/lib/invit-scoring';
 import { discoverInvITData } from '@/lib/invit-discovery-service';
-import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type LivePrice } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, applyLivePricesToInvITs, type SyncError, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import { useTaxContext } from '@/contexts/TaxContext';
 import {
@@ -72,7 +72,13 @@ export default function MasterRanker() {
     }
     return LIVE_REIT_DATA;
   });
-  const [invitData, setInvitData] = useState<InvITData[]>(LIVE_INVIT_DATA);
+  const [invitData, setInvitData] = useState<InvITData[]>(() => {
+    const cachedPrices = getStoredCMPCache();
+    if (Object.keys(cachedPrices).length > 0) {
+      return applyLivePricesToInvITs(LIVE_INVIT_DATA, cachedPrices);
+    }
+    return LIVE_INVIT_DATA;
+  });
 
   const scoredReits = useMemo(
     () => calculateScores(reitData, gsecYield, weights, taxRate),
@@ -154,8 +160,8 @@ export default function MasterRanker() {
       const syncResult = await performSmartSync();
       setReitData(applyLivePrices(LIVE_REIT_DATA, syncResult.livePrices));
 
-      const invitResult = await discoverInvITData();
-      setInvitData(invitResult.invits);
+      // Reuse the same live prices for InvITs — no double fetch
+      setInvitData(applyLivePricesToInvITs(LIVE_INVIT_DATA, syncResult.livePrices));
 
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);

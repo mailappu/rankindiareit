@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DATA_VERIFIED_DATE, computeDivYield, TTM_DISTRIBUTIONS, FALLBACK_CMP, type REITData } from './reit-types';
+import { computeInvITDivYield, type InvITData } from './invit-types';
 
 export interface PDFMetadata {
   reitId: string;
@@ -166,6 +167,28 @@ export function applyLivePrices(
       ...reit,
       cmp: newCmp,
       divYield: newDivYield,
+      isLiveCMP: lp.isLive,
+      cmpCachedAt: lp.fetchedAt,
+      ...(lp.growth1Y !== undefined ? { growth1Y: lp.growth1Y } : {}),
+      ...(lp.growth3Y !== undefined ? { growth3Y: lp.growth3Y } : {}),
+      ...(lp.growth5Y !== undefined ? { growth5Y: lp.growth5Y } : {}),
+    };
+  });
+}
+
+/** Apply live prices to InvIT data and recalculate divYield */
+export function applyLivePricesToInvITs(
+  invits: InvITData[],
+  livePrices: Record<string, LivePrice>
+): InvITData[] {
+  return invits.map(invit => {
+    const lp = livePrices[invit.id];
+    if (!lp || lp.cmp <= 0) return invit;
+
+    return {
+      ...invit,
+      cmp: lp.cmp,
+      divYield: computeInvITDivYield(invit.ttmDistribution, lp.cmp),
       isLiveCMP: lp.isLive,
       cmpCachedAt: lp.fetchedAt,
       ...(lp.growth1Y !== undefined ? { growth1Y: lp.growth1Y } : {}),
