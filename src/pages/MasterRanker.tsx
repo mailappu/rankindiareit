@@ -160,8 +160,8 @@ export default function MasterRanker() {
       const syncResult = await performSmartSync();
       setReitData(applyLivePrices(LIVE_REIT_DATA, syncResult.livePrices));
 
-      const invitResult = await discoverInvITData();
-      setInvitData(invitResult.invits);
+      // Reuse the same live prices for InvITs — no double fetch
+      setInvitData(applyLivePricesToInvITs(LIVE_INVIT_DATA, syncResult.livePrices));
 
       const syncTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       setLastSynced(syncTime);
