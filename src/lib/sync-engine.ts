@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DATA_VERIFIED_DATE, computeDivYield, TTM_DISTRIBUTIONS, FALLBACK_CMP, type REITData } from './reit-types';
+import { computeInvITDivYield, type InvITData } from './invit-types';
 
 export interface PDFMetadata {
   reitId: string;
