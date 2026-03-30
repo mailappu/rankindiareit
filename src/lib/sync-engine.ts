@@ -178,10 +178,9 @@ export function applyLivePrices(
 
 /** Apply live prices to InvIT data and recalculate divYield */
 export function applyLivePricesToInvITs(
-  invits: import('./invit-types').InvITData[],
+  invits: InvITData[],
   livePrices: Record<string, LivePrice>
-): import('./invit-types').InvITData[] {
-  const { computeInvITDivYield } = require('./invit-types');
+): InvITData[] {
   return invits.map(invit => {
     const lp = livePrices[invit.id];
     if (!lp || lp.cmp <= 0) return invit;
