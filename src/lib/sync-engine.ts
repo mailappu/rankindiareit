@@ -98,6 +98,10 @@ function storeCMPCache(prices: Record<string, LivePrice>) {
   localStorage.setItem(CMP_CACHE_KEY, JSON.stringify(prices));
 }
 
+export function persistCMPCache(prices: Record<string, LivePrice>) {
+  storeCMPCache(prices);
+}
+
 /** Fetch live CMP prices from edge function, fallback to cached/hardcoded */
 async function fetchLivePrices(): Promise<Record<string, LivePrice>> {
   const cached = getStoredCMPCache();

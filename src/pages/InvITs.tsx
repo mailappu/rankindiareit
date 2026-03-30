@@ -4,7 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { InvITTable } from '@/components/InvITTable';
 import { calculateInvITScores } from '@/lib/invit-scoring';
 import { discoverInvITData } from '@/lib/invit-discovery-service';
-import { getStoredCMPCache, applyLivePricesToInvITs } from '@/lib/sync-engine';
+import { getStoredCMPCache, applyLivePricesToInvITs, performSmartSync } from '@/lib/sync-engine';
 import { getGSecYield, type GSecStatus } from '@/lib/gsec-service';
 import { useTaxContext } from '@/contexts/TaxContext';
 import { DEFAULT_GSEC_YIELD } from '@/lib/reit-types';
@@ -60,7 +60,8 @@ export default function InvITs() {
       }
       localStorage.setItem('gsec_yield', JSON.stringify({ yield: gsecResult.yield, status: gsecResult.status }));
 
-      const result = await discoverInvITData();
+      const syncResult = await performSmartSync();
+      const result = await discoverInvITData(syncResult.livePrices);
       setInvitData(result.invits);
 
       if (result.errors.length > 0) {
