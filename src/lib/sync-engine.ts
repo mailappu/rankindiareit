@@ -175,6 +175,29 @@ export function applyLivePrices(
   });
 }
 
+/** Apply live prices to InvIT data and recalculate divYield */
+export function applyLivePricesToInvITs(
+  invits: import('./invit-types').InvITData[],
+  livePrices: Record<string, LivePrice>
+): import('./invit-types').InvITData[] {
+  const { computeInvITDivYield } = require('./invit-types');
+  return invits.map(invit => {
+    const lp = livePrices[invit.id];
+    if (!lp || lp.cmp <= 0) return invit;
+
+    return {
+      ...invit,
+      cmp: lp.cmp,
+      divYield: computeInvITDivYield(invit.ttmDistribution, lp.cmp),
+      isLiveCMP: lp.isLive,
+      cmpCachedAt: lp.fetchedAt,
+      ...(lp.growth1Y !== undefined ? { growth1Y: lp.growth1Y } : {}),
+      ...(lp.growth3Y !== undefined ? { growth3Y: lp.growth3Y } : {}),
+      ...(lp.growth5Y !== undefined ? { growth5Y: lp.growth5Y } : {}),
+    };
+  });
+}
+
 export async function performSmartSync(): Promise<SyncResult> {
   let data: any;
   let invokeError: any;
