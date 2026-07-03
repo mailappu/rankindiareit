@@ -4,7 +4,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { InvITTable } from '@/components/InvITTable';
 import { calculateInvITScores } from '@/lib/invit-scoring';
 import { discoverInvITData } from '@/lib/invit-discovery-service';
-import { getStoredCMPCache, applyLivePricesToInvITs, performSmartSync } from '@/lib/sync-engine';
+import { getStoredCMPCache, applyLivePricesToInvITs, performSmartSync, isCMPCacheStale, refreshLivePrices } from '@/lib/sync-engine';
 import { getGSecYield, type GSecStatus } from '@/lib/gsec-service';
 import { useTaxContext } from '@/contexts/TaxContext';
 import { DEFAULT_GSEC_YIELD } from '@/lib/reit-types';
@@ -46,6 +46,15 @@ export default function InvITs() {
       } catch {}
     }
     setLastSynced(localStorage.getItem('last_sync_time') || null);
+
+    const key = 'cmp_autofetch_session';
+    if (!sessionStorage.getItem(key) && isCMPCacheStale()) {
+      sessionStorage.setItem(key, '1');
+      refreshLivePrices().then(prices => {
+        if (Object.keys(prices).length === 0) return;
+        setInvitData(applyLivePricesToInvITs(LIVE_INVIT_DATA, prices));
+      }).catch(() => {});
+    }
   }, []);
 
   const handleSync = useCallback(async () => {

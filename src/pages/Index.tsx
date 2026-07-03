@@ -4,7 +4,7 @@ import { TopNav } from '@/components/TopNav';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { calculateScores } from '@/lib/reit-scoring';
-import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, isCMPCacheStale, refreshLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import { discoverREITData, getCachedDiscovery, type DataDiscoveryResult } from '@/lib/data-discovery-service';
 import { useTaxContext } from '@/contexts/TaxContext';
@@ -48,9 +48,8 @@ export default function Index() {
     [reitData, gsecYield, weights, taxRate]
   );
 
-  // Load cached data on mount — no network calls
+  // Load cached data on mount — silent auto-refresh if CMP cache stale/missing
   useEffect(() => {
-    // G-Sec: use cached if available
     const cachedGsec = localStorage.getItem('gsec_yield');
     if (cachedGsec) {
       try {
@@ -64,6 +63,16 @@ export default function Index() {
 
     setLastSynced(localStorage.getItem('last_sync_time') || null);
     setProvenanceBadge(getProvenanceBadge());
+
+    const key = 'cmp_autofetch_session';
+    if (!sessionStorage.getItem(key) && isCMPCacheStale()) {
+      sessionStorage.setItem(key, '1');
+      refreshLivePrices().then(prices => {
+        if (Object.keys(prices).length === 0) return;
+        setReitData(applyLivePrices(LIVE_REIT_DATA, prices));
+        setLivePrices(prices);
+      }).catch(() => {});
+    }
   }, []);
 
   // ── Audit v2026.3 (runs once per session) ──
