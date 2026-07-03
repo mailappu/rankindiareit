@@ -63,12 +63,12 @@ function ScoreInfoPopover({ reit, gsecYield }: { reit: ScoredREIT; gsecYield: nu
           <div className="flex justify-between">
             <span className="text-muted-foreground">DivScore</span>
             <span className="text-terminal-green">
-              ({reit.divYield.toFixed(2)}% / {gsecYield}%) × 100 = <span className="font-semibold">{reit.divScore}</span>
+              ({reit.postTaxYield.toFixed(2)}% / {gsecYield}%) × 100 = <span className="font-semibold">{reit.divScore}</span>
             </span>
           </div>
           <div className="flex justify-between text-[9px] text-muted-foreground">
-            <span>Yield</span>
-            <span>₹{reit.ttmDistribution} TTM / ₹{reit.cmp.toFixed(2)} CMP × 100</span>
+            <span>Post-Tax Yield</span>
+            <span>Gross {reit.divYield.toFixed(2)}% − Tax (slab {(100 - (reit.postTaxYield / reit.divYield) * 100).toFixed(1)}%)</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">ValueScore</span>

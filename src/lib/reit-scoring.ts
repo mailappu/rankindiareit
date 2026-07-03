@@ -7,7 +7,6 @@ export function calculateScores(
   taxRate: number = 10
 ): (REITData & ScoreBreakdown)[] {
   const maxPipeline = Math.max(...reits.map(r => r.pipeline));
-  const maxGrowth1Y = Math.max(...reits.map(r => r.growth1Y));
 
   const scored = reits.map(reit => {
     // Post-tax yield for scoring
@@ -21,23 +20,17 @@ export function calculateScores(
 
     // SafetyScore = (NormOccupancy * 0.40) + (NormWALE * 0.40) + (LTVScore * 0.20)
     const normOccupancy = (reit.occupancy / 100) * 100; // occupancy already in %
-    const normWALE = (reit.wale / 10) * 100; // 10Y as local max
+    const normWALE = (Math.min(reit.wale, 10) / 10) * 100; // capped at 10Y
     const ltvScore = (1 - reit.ltv / 100) * 100; // inverse: lower debt = safer
     const safetyScore = (normOccupancy * 0.40) + (normWALE * 0.40) + (ltvScore * 0.20);
 
     // Safety audit log
     console.log(`Safety Audit: ${reit.name} Score: ${safetyScore.toFixed(1)} | LTV Impact: ${(ltvScore * 0.2).toFixed(1)}`);
 
-    // GrowthScore = normalized 1Y growth (relative to group max)
-    const growthScore = (reit.growth1Y / maxGrowth1Y) * 100;
+    // GrowthScore = Weighted CAGR (1Y:40%, 3Y:35%, 5Y:25%) with proportional redistribution
+    const growthScore = computeWeightedGrowth(reit.growth1Y, reit.growth3Y, reit.growth5Y);
 
     const pipelineScore = (reit.pipeline / maxPipeline) * 100;
-
-    // Missing data redistribution:
-    // If 3Y or 5Y CAGR is missing, redistribute growth weight to 1Y growth and div yield
-    const has3Y = reit.growth3Y !== null;
-    const has5Y = reit.growth5Y !== null;
-    const missingPenalty = (!has3Y ? 0.15 : 0) + (!has5Y ? 0.1 : 0); // fraction of growth weight to shift
 
     const totalWeight = weights.yield + weights.safety + weights.value + weights.growth + weights.pipeline;
     if (totalWeight === 0) {
@@ -48,12 +41,10 @@ export function calculateScores(
       };
     }
 
-    // Effective weights with redistribution
-    const growthRedist = weights.growth * missingPenalty;
-    const effYield = (weights.yield + growthRedist * 0.6) / totalWeight; // 60% to yield
-    const effGrowth = (weights.growth - growthRedist) / totalWeight;
+    const effYield = weights.yield / totalWeight;
+    const effGrowth = weights.growth / totalWeight;
     const effValue = weights.value / totalWeight;
-    const effSafety = (weights.safety + growthRedist * 0.4) / totalWeight; // 40% to safety
+    const effSafety = weights.safety / totalWeight;
     const effPipeline = weights.pipeline / totalWeight;
 
     const finalScore =
@@ -80,6 +71,16 @@ export function calculateScores(
   scored.forEach((s, i) => { s.rank = i + 1; });
 
   return scored;
+}
+
+function computeWeightedGrowth(g1Y: number, g3Y: number | null, g5Y: number | null): number {
+  let w1 = 40, w3 = 35, w5 = 25;
+  const has3Y = g3Y !== null && g3Y !== undefined;
+  const has5Y = g5Y !== null && g5Y !== undefined;
+  if (!has3Y && !has5Y) return g1Y;
+  if (!has5Y) { const t = w1 + w3; w1 = (w1 / t) * 100; w3 = (w3 / t) * 100; w5 = 0; }
+  else if (!has3Y) { const t = w1 + w5; w1 = (w1 / t) * 100; w5 = (w5 / t) * 100; w3 = 0; }
+  return (g1Y * w1 + (g3Y ?? 0) * w3 + (g5Y ?? 0) * w5) / 100;
 }
 
 function r(v: number): number {
