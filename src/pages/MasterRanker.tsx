@@ -5,7 +5,7 @@ import { StrategyPanel } from '@/components/StrategyPanel';
 import { calculateScores } from '@/lib/reit-scoring';
 import { calculateInvITScores } from '@/lib/invit-scoring';
 import { discoverInvITData } from '@/lib/invit-discovery-service';
-import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, applyLivePricesToInvITs, type SyncError, type LivePrice } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, applyLivePricesToInvITs, isCMPCacheStale, refreshLivePrices, type SyncError, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import { useTaxContext } from '@/contexts/TaxContext';
 import {
