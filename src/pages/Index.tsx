@@ -4,7 +4,7 @@ import { TopNav } from '@/components/TopNav';
 import { StrategyPanel } from '@/components/StrategyPanel';
 import { REITTable } from '@/components/REITTable';
 import { calculateScores } from '@/lib/reit-scoring';
-import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
+import { performSmartSync, getProvenanceBadge, getStoredDiscoveredUrls, getStoredCMPCache, applyLivePrices, isCMPCacheStale, refreshLivePrices, type SyncError, type DiscoveredUrl, type LivePrice } from '@/lib/sync-engine';
 import { getGSecYield, shouldShowToast, type GSecStatus } from '@/lib/gsec-service';
 import { discoverREITData, getCachedDiscovery, type DataDiscoveryResult } from '@/lib/data-discovery-service';
 import { useTaxContext } from '@/contexts/TaxContext';
