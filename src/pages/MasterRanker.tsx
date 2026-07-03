@@ -133,7 +133,7 @@ export default function MasterRanker() {
     return rows;
   }, [scoredReits, scoredInvits, gsecYield, reitData, invitData]);
 
-  // Load cached data on mount — no network calls
+  // Load cached data on mount — silent auto-refresh if CMP cache stale/missing
   useEffect(() => {
     const cachedGsec = localStorage.getItem('gsec_yield');
     if (cachedGsec) {
@@ -146,6 +146,17 @@ export default function MasterRanker() {
       } catch {}
     }
     setLastSynced(localStorage.getItem('last_sync_time') || null);
+
+    // Silent CMP refresh if cache is missing or older than 4h — runs once per session
+    const key = 'cmp_autofetch_session';
+    if (!sessionStorage.getItem(key) && isCMPCacheStale()) {
+      sessionStorage.setItem(key, '1');
+      refreshLivePrices().then(prices => {
+        if (Object.keys(prices).length === 0) return;
+        setReitData(applyLivePrices(LIVE_REIT_DATA, prices));
+        setInvitData(applyLivePricesToInvITs(LIVE_INVIT_DATA, prices));
+      }).catch(() => {});
+    }
   }, []);
 
   const handleSync = useCallback(async () => {
