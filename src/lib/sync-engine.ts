@@ -102,6 +102,24 @@ export function persistCMPCache(prices: Record<string, LivePrice>) {
   storeCMPCache(prices);
 }
 
+/** True if cached CMP is missing or older than `maxAgeMs` (default 4h) */
+export function isCMPCacheStale(maxAgeMs = 4 * 60 * 60 * 1000): boolean {
+  const cached = getStoredCMPCache();
+  const entries = Object.values(cached);
+  if (entries.length === 0) return true;
+  const now = Date.now();
+  for (const p of entries) {
+    const t = p.fetchedAt ? new Date(p.fetchedAt).getTime() : 0;
+    if (!t || now - t > maxAgeMs) return true;
+  }
+  return false;
+}
+
+/** Public wrapper: fetch live CMP prices (used for silent auto-refresh on stale cache) */
+export async function refreshLivePrices(): Promise<Record<string, LivePrice>> {
+  return fetchLivePrices();
+}
+
 /** Fetch live CMP prices from edge function, fallback to cached/hardcoded */
 async function fetchLivePrices(): Promise<Record<string, LivePrice>> {
   const cached = getStoredCMPCache();
