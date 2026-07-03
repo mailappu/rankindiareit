@@ -46,6 +46,15 @@ export default function InvITs() {
       } catch {}
     }
     setLastSynced(localStorage.getItem('last_sync_time') || null);
+
+    const key = 'cmp_autofetch_session';
+    if (!sessionStorage.getItem(key) && isCMPCacheStale()) {
+      sessionStorage.setItem(key, '1');
+      refreshLivePrices().then(prices => {
+        if (Object.keys(prices).length === 0) return;
+        setInvitData(applyLivePricesToInvITs(LIVE_INVIT_DATA, prices));
+      }).catch(() => {});
+    }
   }, []);
 
   const handleSync = useCallback(async () => {
